@@ -1,0 +1,14 @@
+services:
+  vedika-brokers:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: vedika_brokers_web
+    restart: always
+    ports:
+      - "${PORT:-80}:80"
+    environment:
+      - NODE_ENV=production
+    labels:
+      - "app=vedika-brokers"
+      - "environment=production"
