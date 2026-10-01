@@ -1,0 +1,310 @@
+// src/styles/fizzy-button.scss
+@use "sass:math";
+
+/* Scoped specifically for payment success */
+.fizzy-payment-container {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Fira Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: white;
+  user-select: none;
+
+  input[type="checkbox"] {
+    display: none;
+  }
+
+  .button {
+    position: relative;
+    text-align: center;
+    height: 320px;
+    width: 240px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    h1 {
+      font-weight: 200;
+      color: #FFFFFF;
+      font-size: 20px;
+      margin: 0;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      line-height: 1.2;
+    }
+
+    h2 {
+      font-weight: 300;
+      color: #00C4FF;
+      opacity: 1;
+      font-size: 13px;
+      margin: 6px 0px 0px 0px;
+      letter-spacing: 0.5px;
+    }
+
+    .tick {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      transform: scale(0);
+      margin: auto;
+      font-size: 24px;
+      color: #00C1FC;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .b_l_quad .button_spots {
+      @for $i from 1 through 20 {
+        &:nth-child(#{$i}) {
+          padding: (math.random(3) + 2) * 1px;
+          left: -25px + ($i * 12px);
+          top: 50px;
+        }
+      }
+      @for $i from 20 through 40 {
+        &:nth-child(#{$i}) {
+          padding: (math.random(3) + 2) * 1px;
+          left: -255px + ($i * 12px);
+          top: -12px;
+        }
+      }
+      @for $i from 40 through 46 {
+        &:nth-child(#{$i}) {
+          padding: (math.random(3) + 2) * 1px;
+          left: 204px;
+          top: -488px + ($i * 12px);
+        }
+      }
+      @for $i from 46 through 52 {
+        &:nth-child(#{$i}) {
+          padding: (math.random(3) + 2) * 1px;
+          left: -10px;
+          top: -568px + ($i * 12px);
+        }
+      }
+    }
+
+    .button_spots {
+      position: absolute;
+      border-radius: 100px;
+      background: #10b981;
+      opacity: 0;
+      animation: opacity 1s;
+
+      @for $i from 1 through 52 {
+        &:nth-of-type(#{$i}) {
+          transform-origin: (90px - (math.random(10) * 1px)) (20px - (math.random(10) * 1px));
+          background: hsla(350 + math.random(399), (57% - (math.random(10) * 1%)), 65%, 1);
+          box-shadow: 0px 0px 10px rgba(255, 255, 255, 0.15);
+          transition: all (1s + (math.div(math.random(10), 10) * 1s));
+        }
+      }
+    }
+
+    &_inner {
+      border-radius: 4px;
+      position: absolute;
+      width: 200px;
+      height: 50px;
+      left: 0;
+      right: 0;
+      top: 50%;
+      margin: auto;
+      box-shadow: 0px 0px 0px 0px rgba(0, 0, 0, 0.04);
+      font-weight: 300;
+      font-size: 13px;
+      cursor: pointer;
+      border: 2px solid #FFFFFF;
+      color: white;
+      text-align: center;
+      transition: all .3s, box-shadow .2s, transform .2s .2s;
+      user-select: none;
+
+      span.t {
+        position: relative;
+        top: 14px;
+        opacity: 1;
+        left: -8px;
+        transition: left .4s .1s;
+        letter-spacing: 0.5px;
+        display: inline-block;
+      }
+
+      i.l {
+        position: relative;
+        left: -16px;
+        top: 15px;
+        color: #00C4FF;
+        font-size: 20px;
+        opacity: 0;
+        display: inline-block;
+        transition: left .3s 0s, top .3s 0s, opacity .3s 0s;
+      }
+
+      &:hover {
+        color: #2C3940;
+        background: white;
+        box-shadow: 0px 17px 18px -14px rgba(0, 0, 0, 0.12);
+
+        span.t {
+          left: 14px;
+          transition: left .4s;
+        }
+
+        i.l {
+          top: 15px;
+          opacity: 1;
+          transition: left .3s 0s, top .3s .1s, opacity .3s .1s;
+        }
+      }
+
+      &:hover .button_spots {
+        @for $i from 1 through 19 {
+          &:nth-of-type(#{$i}) {
+            animation: spot-#{$i} .7s (math.div(0.4, (1 + math.random(9))) + math.div(math.random(10), 10) * 1s) linear infinite;
+          }
+        }
+        @for $i from 20 through 40 {
+          &:nth-of-type(#{$i}) {
+            animation: spot-#{$i} .7s (math.div(0.4, (1 + math.random(9))) + math.div(math.random(10), 10) * 1s) linear infinite;
+          }
+        }
+        @for $i from 40 through 46 {
+          &:nth-of-type(#{$i}) {
+            animation: spot-#{$i} .7s (math.div(0.4, (1 + math.random(9))) + math.div(math.random(10), 10) * 1s) linear infinite;
+          }
+        }
+        @for $i from 46 through 54 {
+          &:nth-of-type(#{$i}) {
+            animation: spot-#{$i} .7s (math.div(0.4, (1 + math.random(9))) + math.div(math.random(10), 10) * 1s) linear infinite;
+          }
+        }
+      }
+    }
+  }
+
+  /* CHECKED (PAYMENT SUCCESSFUL TRIGGER) */
+  input:checked + label {
+    .button_inner {
+      background: transparent;
+      transform: rotate(90deg);
+      width: 100px;
+      border-radius: 100px;
+      box-shadow: 0px 0px 0px 440px rgba(0, 0, 0, 0);
+      animation: finalbox .4s 3.8s cubic-bezier(0.39, 2.01, 0.27, 0.75) forwards;
+
+      span.t {
+        opacity: 0;
+        top: 20px;
+      }
+    }
+
+    i.l {
+      left: 14px;
+      opacity: 1;
+      top: 11px;
+      animation: down 0.9s .25s infinite, final .2s 3.6s forwards;
+    }
+
+    .tick {
+      position: absolute;
+      left: 2px;
+      right: 0;
+      top: 11px;
+      margin: auto;
+      transform: scale(0) rotate(-90deg);
+      color: #00C1FC;
+      animation: tick .3s 4.0s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+
+    .button_spots {
+      opacity: 1;
+
+      @for $i from 0 through 60 {
+        &:nth-of-type(#{$i}) {
+          top: (16px - (math.random(10) * 1px)) !important;
+          left: -34px !important;
+          opacity: 0;
+          padding: (math.div(math.random(20), 4) + 2) * 1px !important;
+          animation: spew 1s .3s forwards,
+                     rotate (3.6s + (math.div(math.random(4), 10) * 1s)) (0.25s + (math.div(math.random(12), 10) * 1s)) linear infinite,
+                     final .2s 3.6s forwards,
+                     spot-#{$i} .7s (math.div(0.4, (1 + math.random(9))) + math.div(math.random(10), 10) + 10s) linear infinite !important;
+        }
+      }
+    }
+  }
+}
+
+/* Keyframes */
+@for $i from 1 through 20 {
+  @keyframes spot-#{$i} {
+    from { opacity: 0; }
+    to { transform: translateY(30px) translateX(-20px + ($i * 2px)); opacity: 0.6; }
+  }
+}
+
+@for $i from 20 through 40 {
+  @keyframes spot-#{$i} {
+    from { opacity: 0; }
+    to { transform: translateY(-30px) translateX(-50px + ($i * 2px)); opacity: 0.6; }
+  }
+}
+
+@for $i from 40 through 45 {
+  @keyframes spot-#{$i} {
+    from { opacity: 0; }
+    to { transform: translateY(-86px + ($i * 2px)) translateX(40px); opacity: 0.6; }
+  }
+}
+
+@for $i from 46 through 54 {
+  @keyframes spot-#{$i} {
+    from { opacity: 0; }
+    to { transform: translateY(-99px + ($i * 2px)) translateX(-40px); opacity: 0.6; }
+  }
+}
+
+@keyframes opacity {
+  from {}
+  to { opacity: 0; }
+}
+
+@keyframes rotate {
+  from { opacity: 0.8; }
+  to { transform: rotate(360deg); opacity: 0.8; }
+}
+
+@keyframes down {
+  from { left: 10px; }
+  to { left: 57px; }
+}
+
+@keyframes spew {
+  from { opacity: 0; }
+  to { opacity: 0.8; }
+}
+
+@keyframes final {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes finalbox {
+  from {}
+  to { width: 50px; }
+}
+
+@keyframes tick {
+  from { transform: scale(0) rotate(-90deg); }
+  to { transform: scale(1.1) rotate(-90deg); }
+}
