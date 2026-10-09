@@ -1,0 +1,21 @@
+{
+  "short_name": "Vedika Brokers",
+  "name": "Vedika Brokers — Premium Property Brokerage",
+  "description": "Verified flats and properties for Rent and Buy across Maharashtra. Scan QR, browse verified listings, and visit your dream property.",
+  "icons": [
+    {
+      "src": "favicon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "logo-icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "./",
+  "background_color": "#020617",
+  "theme_color": "#1e3a8a",
+  "display": "standalone"
+}

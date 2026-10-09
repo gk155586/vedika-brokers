@@ -824,10 +824,18 @@ export class DataStore {
     try {
       const rawUsers = localStorage.getItem('vb_registered_users');
       if (rawUsers === null) {
-        localStorage.setItem('vb_registered_users', JSON.stringify(INITIAL_REGISTERED_USERS));
+        const backupUsers = localStorage.getItem('vb_registered_users_backup');
+        if (backupUsers !== null) {
+          localStorage.setItem('vb_registered_users', backupUsers);
+        } else {
+          localStorage.setItem('vb_registered_users', JSON.stringify(INITIAL_REGISTERED_USERS));
+          localStorage.setItem('vb_registered_users_backup', JSON.stringify(INITIAL_REGISTERED_USERS));
+        }
+      } else {
+        localStorage.setItem('vb_registered_users_backup', rawUsers);
       }
     } catch (_) {
-      localStorage.setItem('vb_registered_users', JSON.stringify(INITIAL_REGISTERED_USERS));
+      // Defensive: Never overwrite user storage on exception
     }
 
     // Initialize Enquiries & Leads with complete historical records (Zero Data Loss)
@@ -1652,7 +1660,7 @@ export class DataStore {
       // Load registered members to cross-reference valid members
       let registered = [];
       try {
-        const raw = localStorage.getItem('vb_registered_users');
+        const raw = localStorage.getItem('vb_registered_users') || localStorage.getItem('vb_registered_users_backup');
         if (raw !== null) {
           registered = JSON.parse(raw);
           if (!Array.isArray(registered)) registered = [];
@@ -1714,16 +1722,25 @@ export class DataStore {
   async getUsersDetailed() {
     let registered = [];
     try {
-      const raw = localStorage.getItem('vb_registered_users');
+      const raw = localStorage.getItem('vb_registered_users') || localStorage.getItem('vb_registered_users_backup');
       if (raw !== null) {
         registered = JSON.parse(raw);
         if (!Array.isArray(registered)) registered = [];
       } else {
         registered = [...INITIAL_REGISTERED_USERS];
         localStorage.setItem('vb_registered_users', JSON.stringify(registered));
+        localStorage.setItem('vb_registered_users_backup', JSON.stringify(registered));
       }
     } catch (_) {
-      registered = [];
+      try {
+        const backupRaw = localStorage.getItem('vb_registered_users_backup');
+        if (backupRaw !== null) {
+          registered = JSON.parse(backupRaw);
+          if (!Array.isArray(registered)) registered = [];
+        }
+      } catch (__) {
+        registered = [];
+      }
     }
 
     const properties = await this.getProperties();

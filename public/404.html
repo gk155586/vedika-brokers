@@ -1,34 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="/vedika-brokers/favicon.png" />
-    <link rel="apple-touch-icon" href="/vedika-brokers/logo-icon.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <meta name="theme-color" content="#1e3a8a" />
-    <meta name="description" content="Vedika Brokers - Verified flats and properties for Rent and Buy across Maharashtra. Scan QR, browse verified listings, and visit your dream property." />
-    
-    <!-- Open Graph / Meta -->
-    <meta property="og:type" content="website" />
-    <meta property="og:title" content="Vedika Brokers | Verified Homes for Rent & Sale" />
-    <meta property="og:description" content="Scan QR codes, explore verified rental & sale flats, and unlock exact addresses securely." />
-    <meta property="og:image" content="/og-banner.jpg" />
-    
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
-    
-    <!-- Razorpay Checkout SDK -->
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-
-    <title>Vedika Brokers | Premium Property Brokerage</title>
-    <script type="module" crossorigin src="/vedika-brokers/assets/index-8oRC0EzT.js"></script>
-    <link rel="modulepreload" crossorigin href="/vedika-brokers/assets/vendor-CgZDid0n.js">
-    <link rel="modulepreload" crossorigin href="/vedika-brokers/assets/icons-CFF8NkGU.js">
-    <link rel="stylesheet" crossorigin href="/vedika-brokers/assets/index-DudLCjuF.css">
+    <meta charset="utf-8">
+    <title>Vedika Brokers</title>
+    <script type="text/javascript">
+      // Single Page Apps for GitHub Pages
+      // MIT License - https://github.com/rafgraph/spa-github-pages
+      var pathSegmentsToKeep = window.location.pathname.startsWith('/vedika-brokers') ? 1 : 0;
+      var l = window.location;
+      var cleanBase = l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/');
+      var route = l.pathname.slice(1).split('/').slice(pathSegmentsToKeep).join('/').replace(/&/g, '~and~');
+      l.replace(
+        l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
+        cleanBase + '/?/' + route +
+        (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
+        l.hash
+      );
+    </script>
   </head>
-  <body class="bg-slate-50 text-slate-900 font-sans antialiased selection:bg-blue-600 selection:text-white">
-    <div id="root"></div>
+  <body style="background-color: #020617; color: #f8fafc; font-family: system-ui, -apple-system, sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0;">
+    <div style="text-align: center;">
+      <div style="width: 48px; height: 48px; border: 4px solid #f59e0b; border-top-color: transparent; border-radius: 50%; margin: 0 auto 16px auto; animation: spin 1s linear infinite;"></div>
+      <p style="font-size: 14px; font-weight: 600; letter-spacing: 0.05em; color: #94a3b8;">Loading Vedika Brokers...</p>
+    </div>
+    <style>
+      @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
   </body>
 </html>

@@ -375,10 +375,18 @@ export async function registerLocalUser(name, email, password, phone = '') {
 
   let users = [];
   try {
-    users = JSON.parse(localStorage.getItem('vb_registered_users') || '[]');
+    const raw = localStorage.getItem('vb_registered_users') || localStorage.getItem('vb_registered_users_backup');
+    if (raw) {
+      users = JSON.parse(raw);
+    }
     if (!Array.isArray(users)) users = [];
   } catch (_) {
-    users = [];
+    try {
+      users = JSON.parse(localStorage.getItem('vb_registered_users_backup') || '[]');
+      if (!Array.isArray(users)) users = [];
+    } catch (__) {
+      users = [];
+    }
   }
 
   // Prevent duplicate registration
@@ -402,7 +410,15 @@ export async function registerLocalUser(name, email, password, phone = '') {
   };
 
   users.push(newUser);
-  localStorage.setItem('vb_registered_users', JSON.stringify(users));
+  try {
+    localStorage.setItem('vb_registered_users', JSON.stringify(users));
+    localStorage.setItem('vb_registered_users_backup', JSON.stringify(users));
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('vb-users-updated', { detail: { count: users.length } }));
+    }
+  } catch (saveErr) {
+    console.warn('LocalStorage save notice:', saveErr);
+  }
 
   // Return public safe user profile (strip credentials)
   return {
@@ -423,7 +439,8 @@ export async function authenticateLocalUser(email, password) {
 
   let users = [];
   try {
-    users = JSON.parse(localStorage.getItem('vb_registered_users') || '[]');
+    const raw = localStorage.getItem('vb_registered_users') || localStorage.getItem('vb_registered_users_backup');
+    if (raw) users = JSON.parse(raw);
     if (!Array.isArray(users)) users = [];
   } catch (_) {
     users = [];
