@@ -58,7 +58,11 @@ export default function Navbar() {
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
   }, []);
 
   const handleSignOut = async () => {
@@ -186,13 +190,16 @@ export default function Navbar() {
             </NavLink>
           </div>
 
-          {/* User Controls: Transparent Button (NO White Box) */}
-          <div className="flex items-center space-x-2">
+          {/* Right Controls: User Account Menu & Mobile Menu Toggle */}
+          <div className="flex items-center space-x-1.5 sm:space-x-3">
             <div className="relative" ref={userMenuRef}>
               <button
                 type="button"
-                onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                className="relative group flex items-center gap-2 px-2.5 py-1.5 rounded-full transition-all duration-200 focus:outline-none bg-transparent hover:text-amber-300"
+                onClick={() => {
+                  setUserDropdownOpen(!userDropdownOpen);
+                  setMobileMenuOpen(false);
+                }}
+                className="relative group flex items-center gap-1.5 sm:gap-2 px-2 sm:px-2.5 py-1.5 rounded-full transition-all duration-200 focus:outline-none bg-transparent hover:text-amber-300"
                 title={user ? `Signed in as ${user.name || user.email}` : "User Account (Login / Register)"}
                 aria-label="User Account"
               >
@@ -213,9 +220,17 @@ export default function Navbar() {
                 }`} />
               </button>
 
+              {/* Mobile Backdrop Overlay (Closes dropdown when tapping anywhere on phone screen) */}
+              {userDropdownOpen && (
+                <div
+                  className="fixed inset-0 bg-black/50 backdrop-blur-xs z-40 sm:hidden"
+                  onClick={() => setUserDropdownOpen(false)}
+                />
+              )}
+
               {/* Dropdown Menu Housing Login & Register Pages */}
               {userDropdownOpen && (
-                <div className="absolute right-0 mt-3 w-64 sm:w-72 max-w-[calc(100vw-1.5rem)] bg-slate-900/95 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/10 py-2 z-50 animate-in fade-in zoom-in-95 duration-200 overflow-hidden text-white">
+                <div className="fixed left-3 right-3 top-16 max-w-sm mx-auto sm:left-auto sm:right-0 sm:top-full sm:mt-3 sm:w-72 sm:max-w-none bg-slate-900/95 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/10 py-2 z-50 animate-in fade-in zoom-in-95 duration-200 overflow-hidden text-white">
                   {user ? (
                     <div>
                       <div className="px-4 py-3 bg-white/5 border-b border-white/10">
@@ -299,17 +314,20 @@ export default function Navbar() {
                 </div>
               )}
             </div>
-          </div>
 
-          {/* Mobile menu button */}
-          <div className="md:hidden flex items-center space-x-2">
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-xl text-white bg-transparent hover:text-amber-300 transition-all duration-200 focus:outline-none"
-              aria-label="Toggle Navigation Menu"
-            >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
+            {/* Mobile menu button */}
+            <div className="md:hidden flex items-center">
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(!mobileMenuOpen);
+                  setUserDropdownOpen(false);
+                }}
+                className="p-2 rounded-xl text-white bg-transparent hover:text-amber-300 transition-all duration-200 focus:outline-none"
+                aria-label="Toggle Navigation Menu"
+              >
+                {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              </button>
+            </div>
           </div>
         </div>
       </div>
