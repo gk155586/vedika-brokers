@@ -12,6 +12,14 @@ export default function ScheduleVisitModal({ property, isOpen, onClose, onSchedu
   const [notes, setNotes] = useState('');
   const [submitted, setSubmitted] = useState(false);
 
+  React.useEffect(() => {
+    if (isOpen) {
+      const prev = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => { document.body.style.overflow = prev; };
+    }
+  }, [isOpen]);
+
   if (!isOpen || !property) return null;
 
   const handleSubmit = async (e) => {
@@ -37,10 +45,13 @@ export default function ScheduleVisitModal({ property, isOpen, onClose, onSchedu
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in">
-      <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-100 overflow-hidden">
+    <div 
+      className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-4 bg-slate-950/75 backdrop-blur-sm animate-in fade-in overflow-y-auto overscroll-contain"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-100 overflow-hidden my-auto max-h-[92dvh] sm:max-h-[88vh] flex flex-col">
         {/* Header */}
-        <div className="bg-blue-900 text-white p-5 relative">
+        <div className="bg-blue-900 text-white p-4 sm:p-5 relative shrink-0">
           <button
             onClick={onClose}
             className="absolute top-4 right-4 p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition"
@@ -63,7 +74,7 @@ export default function ScheduleVisitModal({ property, isOpen, onClose, onSchedu
             </p>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <form onSubmit={handleSubmit} className="p-5 sm:p-6 space-y-4 overflow-y-auto flex-1 scrollbar-thin touch-pan-y">
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">Preferred Date</label>
               <input

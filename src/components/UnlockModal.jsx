@@ -29,6 +29,12 @@ export default function UnlockModal({ property, isOpen, onClose, onUnlocked }) {
     if (!isOpen) {
       setPaymentSuccessData(null);
       setLoading(false);
+    } else {
+      const prevOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = prevOverflow;
+      };
     }
   }, [isOpen]);
 
@@ -108,29 +114,45 @@ export default function UnlockModal({ property, isOpen, onClose, onUnlocked }) {
   // When payment is successful, show the Fizzy CSS Button Payment Successful component
   if (paymentSuccessData) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200">
-        <FizzyPaymentSuccess
-          property={property}
-          paymentDetails={paymentSuccessData}
-          onClose={() => {
+      <div
+        className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200 overflow-y-auto"
+        onClick={(e) => {
+          if (e.target === e.currentTarget) {
             setPaymentSuccessData(null);
             onClose();
-          }}
-          onViewProperty={() => {
-            setPaymentSuccessData(null);
-            onClose();
-          }}
-        />
+          }
+        }}
+      >
+        <div className="w-full max-w-lg my-auto max-h-[92dvh] overflow-y-auto">
+          <FizzyPaymentSuccess
+            property={property}
+            paymentDetails={paymentSuccessData}
+            onClose={() => {
+              setPaymentSuccessData(null);
+              onClose();
+            }}
+            onViewProperty={() => {
+              setPaymentSuccessData(null);
+              onClose();
+            }}
+          />
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-slate-100 overflow-hidden">
+    <div
+      className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-4 bg-slate-950/75 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto overscroll-contain"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div className="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-slate-100 overflow-hidden my-auto max-h-[90dvh] sm:max-h-[88vh] flex flex-col">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-900 to-indigo-950 text-white p-6 relative">
+        <div className="bg-gradient-to-r from-blue-900 to-indigo-950 text-white p-4 sm:p-6 relative shrink-0">
           <button
+            type="button"
             onClick={onClose}
             className="absolute top-4 right-4 p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition"
           >
@@ -141,17 +163,18 @@ export default function UnlockModal({ property, isOpen, onClose, onUnlocked }) {
             <img src={getAssetUrl('/logo-icon.png')} alt="Vedika" className="w-4 h-4 object-contain" />
             <span>Secure Address Unlock</span>
           </div>
-          <h2 className="text-xl font-bold font-serif">{property.title}</h2>
+          <h2 className="text-lg sm:text-xl font-bold font-serif line-clamp-2">{property.title}</h2>
           <p className="text-xs text-blue-200 mt-1">Property Code: {property.property_code}</p>
         </div>
 
         {/* Tab Selection */}
-        <div className="flex border-b border-slate-200 bg-slate-50 text-sm font-semibold">
+        <div className="flex border-b border-slate-200 bg-slate-50 text-xs sm:text-sm font-semibold shrink-0">
           <button
+            type="button"
             onClick={() => setActiveTab('razorpay')}
-            className={`flex-1 py-3 px-4 flex items-center justify-center gap-2 transition ${
+            className={`flex-1 py-3 px-3 sm:px-4 flex items-center justify-center gap-1.5 sm:gap-2 transition ${
               activeTab === 'razorpay'
-                ? 'bg-white text-blue-900 border-b-2 border-blue-900 shadow-sm'
+                ? 'bg-white text-blue-900 border-b-2 border-blue-900 shadow-sm font-bold'
                 : 'text-slate-500 hover:text-slate-900'
             }`}
           >
@@ -159,32 +182,33 @@ export default function UnlockModal({ property, isOpen, onClose, onUnlocked }) {
           </button>
           
           <button
+            type="button"
             onClick={() => setActiveTab('bank')}
-            className={`flex-1 py-3 px-4 flex items-center justify-center gap-2 transition relative ${
+            className={`flex-1 py-3 px-3 sm:px-4 flex items-center justify-center gap-1.5 sm:gap-2 transition relative ${
               activeTab === 'bank'
-                ? 'bg-white text-blue-900 border-b-2 border-blue-900 shadow-sm'
+                ? 'bg-white text-blue-900 border-b-2 border-blue-900 shadow-sm font-bold'
                 : 'text-slate-500 hover:text-slate-900'
             }`}
           >
             <Building className="w-4 h-4 text-slate-500" /> Direct Bank UPI
-            <span className="text-[10px] bg-amber-100 text-amber-800 font-bold px-1.5 py-0.5 rounded-full">
+            <span className="text-[9px] sm:text-[10px] bg-amber-100 text-amber-800 font-bold px-1.5 py-0.5 rounded-full ml-1">
               Soon
             </span>
           </button>
         </div>
 
-        {/* Modal Body */}
-        <div className="p-6">
+        {/* Modal Body - Scrollable Container */}
+        <div className="p-4 sm:p-6 overflow-y-auto flex-1 scrollbar-thin space-y-4 touch-pan-y">
           {activeTab === 'razorpay' ? (
             <div className="space-y-4">
               {/* Fee Breakdown Card */}
-              <div className="bg-blue-50/60 border border-blue-200/60 rounded-2xl p-4">
-                <div className="flex justify-between items-center pb-3 border-b border-blue-200/50">
-                  <span className="text-sm font-medium text-slate-700">Address & Broker Connect Fee</span>
-                  <span className="text-lg font-black text-blue-950 font-serif">₹1,000</span>
+              <div className="bg-blue-50/60 border border-blue-200/60 rounded-2xl p-3.5 sm:p-4">
+                <div className="flex justify-between items-center pb-2.5 border-b border-blue-200/50">
+                  <span className="text-xs sm:text-sm font-medium text-slate-700">Address & Broker Connect Fee</span>
+                  <span className="text-base sm:text-lg font-black text-blue-950 font-serif">₹1,000</span>
                 </div>
                 
-                <div className="pt-3 flex items-start gap-2 text-xs text-blue-900 leading-relaxed">
+                <div className="pt-2.5 flex items-start gap-2 text-xs text-blue-900 leading-relaxed">
                   <Sparkles className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
                   <div>
                     <strong className="text-slate-900">₹500 Viewing Guarantee:</strong> If you visit this property and decide not to rent/buy, you can request an instant ₹500 refund from your account dashboard.
@@ -195,18 +219,18 @@ export default function UnlockModal({ property, isOpen, onClose, onUnlocked }) {
               {/* Supported payment channels */}
               <div className="text-xs text-slate-500 space-y-1.5">
                 <p className="font-semibold text-slate-700">Supported Payment Methods:</p>
-                <div className="flex flex-wrap gap-2 pt-1">
-                  <span className="bg-slate-100 px-2 py-1 rounded text-slate-600 font-medium">Google Pay</span>
-                  <span className="bg-slate-100 px-2 py-1 rounded text-slate-600 font-medium">PhonePe</span>
-                  <span className="bg-slate-100 px-2 py-1 rounded text-slate-600 font-medium">Paytm</span>
-                  <span className="bg-slate-100 px-2 py-1 rounded text-slate-600 font-medium">Any UPI ID</span>
-                  <span className="bg-slate-100 px-2 py-1 rounded text-slate-600 font-medium">Credit/Debit Cards</span>
-                  <span className="bg-slate-100 px-2 py-1 rounded text-slate-600 font-medium">Netbanking</span>
+                <div className="flex flex-wrap gap-1.5 pt-0.5">
+                  <span className="bg-slate-100 px-2 py-1 rounded-md text-slate-600 font-medium text-[11px]">Google Pay</span>
+                  <span className="bg-slate-100 px-2 py-1 rounded-md text-slate-600 font-medium text-[11px]">PhonePe</span>
+                  <span className="bg-slate-100 px-2 py-1 rounded-md text-slate-600 font-medium text-[11px]">Paytm</span>
+                  <span className="bg-slate-100 px-2 py-1 rounded-md text-slate-600 font-medium text-[11px]">Any UPI ID</span>
+                  <span className="bg-slate-100 px-2 py-1 rounded-md text-slate-600 font-medium text-[11px]">Credit/Debit Cards</span>
+                  <span className="bg-slate-100 px-2 py-1 rounded-md text-slate-600 font-medium text-[11px]">Netbanking</span>
                 </div>
               </div>
 
               {/* Terms Checkbox */}
-              <label className="flex items-start gap-2.5 text-xs text-slate-600 cursor-pointer pt-2">
+              <label className="flex items-start gap-2.5 text-xs text-slate-600 cursor-pointer pt-1">
                 <input
                   type="checkbox"
                   checked={agreeTerms}
@@ -220,9 +244,10 @@ export default function UnlockModal({ property, isOpen, onClose, onUnlocked }) {
 
               {/* Action Button */}
               <button
+                type="button"
                 onClick={handleRazorpayPayment}
                 disabled={loading}
-                className="w-full bg-blue-900 hover:bg-blue-800 text-white font-bold py-3.5 px-6 rounded-2xl shadow-lg hover:shadow-xl transition flex items-center justify-center gap-2 text-sm disabled:opacity-50"
+                className="w-full bg-blue-900 hover:bg-blue-800 text-white font-bold py-3.5 px-6 rounded-2xl shadow-lg hover:shadow-xl transition flex items-center justify-center gap-2 text-sm disabled:opacity-50 active:scale-[0.99]"
               >
                 {loading ? (
                   <span>Processing Payment...</span>
@@ -267,6 +292,7 @@ export default function UnlockModal({ property, isOpen, onClose, onUnlocked }) {
               </div>
 
               <button
+                type="button"
                 onClick={() => setActiveTab('razorpay')}
                 className="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold py-3 px-4 rounded-xl text-xs transition"
               >
@@ -277,8 +303,8 @@ export default function UnlockModal({ property, isOpen, onClose, onUnlocked }) {
         </div>
 
         {/* Security Footer Note */}
-        <div className="bg-slate-50 px-6 py-3 border-t border-slate-100 flex items-center justify-center gap-2 text-[11px] text-slate-500">
-          <ShieldCheck className="w-4 h-4 text-emerald-600" />
+        <div className="bg-slate-50 px-4 sm:px-6 py-2.5 sm:py-3 border-t border-slate-100 flex items-center justify-center gap-2 text-[11px] text-slate-500 shrink-0">
+          <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
           <span>256-bit Bank Grade Encryption • Official Vedika Brokers Desk</span>
         </div>
       </div>

@@ -15,6 +15,14 @@ export default function PropertyEnquiryModal({ property, isOpen, onClose, onEnqu
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
+  React.useEffect(() => {
+    if (isOpen) {
+      const prev = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => { document.body.style.overflow = prev; };
+    }
+  }, [isOpen]);
+
   if (!isOpen || !property) return null;
 
   const handleSubmit = async (e) => {
@@ -51,10 +59,13 @@ export default function PropertyEnquiryModal({ property, isOpen, onClose, onEnqu
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in">
-      <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-100 overflow-hidden">
+    <div 
+      className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-4 bg-slate-950/75 backdrop-blur-sm animate-in fade-in overflow-y-auto overscroll-contain"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-100 overflow-hidden my-auto max-h-[92dvh] sm:max-h-[88vh] flex flex-col">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-950 via-slate-900 to-blue-900 text-white p-5 relative">
+        <div className="bg-gradient-to-r from-blue-950 via-slate-900 to-blue-900 text-white p-4 sm:p-5 relative shrink-0">
           <button
             type="button"
             onClick={onClose}
@@ -78,7 +89,7 @@ export default function PropertyEnquiryModal({ property, isOpen, onClose, onEnqu
             </p>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="p-5 sm:p-6 space-y-3.5">
+          <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-3.5 overflow-y-auto flex-1 scrollbar-thin touch-pan-y">
             <div className="flex items-center gap-2 p-2.5 rounded-xl bg-amber-50 border border-amber-200/80 text-[11px] text-amber-900 font-medium">
               <ShieldCheck className="w-4 h-4 text-amber-600 shrink-0" />
               <span>Direct connect with Swapnil Navghare (Vedika Brokers). Zero spam.</span>
