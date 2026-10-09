@@ -265,7 +265,7 @@ export default function Home() {
   return (
     <div className="space-y-12 sm:space-y-16 pb-16">
       {/* 1. CINEMATIC FULL-SCREEN PROPERTY VIDEO / IMAGE HERO */}
-      <section id="hero-section" className="relative min-h-screen flex items-center justify-center text-white overflow-hidden pt-20 sm:pt-24 pb-12">
+      <section id="hero-section" className="relative min-h-[100dvh] sm:min-h-screen flex items-center justify-center text-white overflow-hidden pt-16 sm:pt-24 pb-20 sm:pb-12">
         {/* Full-screen Background Video & Fallback Image */}
         <div className="absolute inset-0 w-full h-full overflow-hidden z-0">
           <video
@@ -279,27 +279,33 @@ export default function Home() {
             className="w-full h-full object-cover object-center scale-105 transition-transform duration-1000 brightness-110 contrast-[1.02]"
           />
           {/* Light cinematic overlay so the video stays bright, luminous, and clear */}
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-black/20 to-slate-950/30" />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/75 via-black/25 to-slate-950/35" />
         </div>
 
         {/* Minimal Hero UI Layered Directly on Top */}
-        <div className="max-w-4xl mx-auto text-center relative z-10 px-4 sm:px-6 lg:px-8 space-y-5 sm:space-y-6 w-full pt-4 sm:pt-6">
+        <div className="max-w-4xl mx-auto text-center relative z-10 px-3.5 sm:px-6 lg:px-8 space-y-4 sm:space-y-6 w-full pt-2 sm:pt-6">
+          {/* Top verified badge on mobile and desktop */}
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-950/70 border border-amber-400/30 text-amber-300 text-[10px] sm:text-xs font-bold uppercase tracking-wider backdrop-blur-md shadow-md animate-in fade-in duration-300">
+            <Sparkles className="w-3 h-3 text-amber-400 shrink-0" />
+            <span>Nanded's Direct Real Estate Desk</span>
+          </div>
+
           {/* Minimal Typography with high-contrast drop shadows */}
-          <div className="space-y-2.5 sm:space-y-3">
-            <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white font-serif drop-shadow-[0_4px_18px_rgba(0,0,0,0.9)]">
+          <div className="space-y-1.5 sm:space-y-2.5">
+            <h1 className="text-3xl sm:text-5xl lg:text-7xl font-black tracking-tight text-white font-serif drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)] leading-tight">
               VEDIKA BROKERS
             </h1>
-            <p className="text-base sm:text-xl lg:text-2xl text-slate-100 font-medium tracking-wide max-w-xl mx-auto drop-shadow-[0_2px_10px_rgba(0,0,0,0.85)]">
+            <p className="text-xs sm:text-lg lg:text-xl text-slate-100 font-medium tracking-wide max-w-md mx-auto drop-shadow-[0_1px_6px_rgba(0,0,0,0.9)]">
               Find a place that feels like home.
             </p>
           </div>
 
           {/* Prominent High-Clarity Action Buttons: BUY & RENT with Left-to-Right Parda Animation */}
-          <div className="flex items-center justify-center gap-3.5 sm:gap-6 pt-1 max-w-md mx-auto w-full">
+          <div className="flex items-center justify-center gap-2.5 sm:gap-5 pt-0.5 max-w-xs sm:max-w-md mx-auto w-full">
             <Link
               to="/buy"
               onClick={(e) => handleHeroNavClick(e, '/buy', 'buy')}
-              className={`relative group overflow-hidden flex-1 py-3.5 sm:py-4 px-6 rounded-2xl bg-amber-400 hover:bg-amber-300 active:bg-amber-500 font-black text-sm sm:text-base shadow-[0_10px_30px_rgba(245,158,11,0.35)] hover:shadow-[0_14px_35px_rgba(245,158,11,0.55)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 flex items-center justify-center border-2 border-amber-300 select-none ${
+              className={`relative group overflow-hidden flex-1 py-3 sm:py-3.5 px-4 sm:px-6 rounded-2xl bg-amber-400 hover:bg-amber-300 active:bg-amber-500 font-black text-xs sm:text-base shadow-[0_8px_25px_rgba(245,158,11,0.35)] hover:shadow-[0_12px_30px_rgba(245,158,11,0.55)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 flex items-center justify-center border border-amber-300 select-none ${
                 animatingBtn === 'buy' ? 'scale-95 shadow-amber-500/60 ring-2 ring-amber-400/80' : ''
               }`}
             >
@@ -314,28 +320,28 @@ export default function Home() {
               <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/50 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out pointer-events-none z-0" />
 
               {/* Elements sliding in sequential order from left to right like a curtain */}
-              <div className="relative z-10 flex items-center justify-center gap-2.5">
+              <div className="relative z-10 flex items-center justify-center gap-2">
                 <Building2
-                  className={`w-5 h-5 transition-all duration-250 ease-out ${
+                  className={`w-4 h-4 sm:w-5 sm:h-5 transition-all duration-250 ease-out ${
                     animatingBtn === 'buy'
-                      ? 'translate-x-3 text-amber-400 scale-110'
+                      ? 'translate-x-2 text-amber-400 scale-110'
                       : 'text-slate-950 group-hover:scale-110'
                   }`}
                 />
                 <span
-                  className={`tracking-wider transition-all duration-280 delay-50 ease-out ${
+                  className={`tracking-wider text-xs sm:text-base transition-all duration-280 delay-50 ease-out ${
                     animatingBtn === 'buy'
-                      ? 'translate-x-6 sm:translate-x-8 text-white font-black tracking-widest'
-                      : 'text-slate-950'
+                      ? 'translate-x-4 sm:translate-x-8 text-white font-black tracking-widest'
+                      : 'text-slate-950 font-black'
                   }`}
                 >
                   BUY
                 </span>
                 <ArrowRight
-                  className={`w-4 h-4 transition-all duration-300 delay-100 ease-out ${
+                  className={`w-3.5 h-3.5 sm:w-4 sm:h-4 transition-all duration-300 delay-100 ease-out ${
                     animatingBtn === 'buy'
-                      ? 'translate-x-10 sm:translate-x-12 scale-125 text-amber-400'
-                      : 'text-slate-950/70 group-hover:translate-x-1.5'
+                      ? 'translate-x-6 sm:translate-x-12 scale-125 text-amber-400'
+                      : 'text-slate-950/70 group-hover:translate-x-1'
                   }`}
                 />
               </div>
@@ -344,7 +350,7 @@ export default function Home() {
             <Link
               to="/rent"
               onClick={(e) => handleHeroNavClick(e, '/rent', 'rent')}
-              className={`relative group overflow-hidden flex-1 py-3.5 sm:py-4 px-6 rounded-2xl bg-white hover:bg-slate-100 active:bg-slate-200 font-black text-sm sm:text-base shadow-[0_10px_30px_rgba(255,255,255,0.3)] hover:shadow-[0_14px_35px_rgba(255,255,255,0.45)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 flex items-center justify-center border-2 border-white select-none ${
+              className={`relative group overflow-hidden flex-1 py-3 sm:py-3.5 px-4 sm:px-6 rounded-2xl bg-white hover:bg-slate-100 active:bg-slate-200 font-black text-xs sm:text-base shadow-[0_8px_25px_rgba(255,255,255,0.25)] hover:shadow-[0_12px_30px_rgba(255,255,255,0.4)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 flex items-center justify-center border border-white select-none ${
                 animatingBtn === 'rent' ? 'scale-95 shadow-white/60 ring-2 ring-white/80' : ''
               }`}
             >
@@ -359,86 +365,89 @@ export default function Home() {
               <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-slate-200/60 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out pointer-events-none z-0" />
 
               {/* Elements sliding in sequential order from left to right like a curtain */}
-              <div className="relative z-10 flex items-center justify-center gap-2.5">
+              <div className="relative z-10 flex items-center justify-center gap-2">
                 <Key
-                  className={`w-5 h-5 transition-all duration-250 ease-out ${
+                  className={`w-4 h-4 sm:w-5 sm:h-5 transition-all duration-250 ease-out ${
                     animatingBtn === 'rent'
-                      ? 'translate-x-3 rotate-[20deg] text-amber-400 scale-110'
+                      ? 'translate-x-2 rotate-[20deg] text-amber-400 scale-110'
                       : 'text-slate-950 group-hover:rotate-[15deg] group-hover:scale-110'
                   }`}
                 />
                 <span
-                  className={`tracking-wider transition-all duration-280 delay-50 ease-out ${
+                  className={`tracking-wider text-xs sm:text-base transition-all duration-280 delay-50 ease-out ${
                     animatingBtn === 'rent'
-                      ? 'translate-x-6 sm:translate-x-8 text-white font-black tracking-widest'
-                      : 'text-slate-950'
+                      ? 'translate-x-4 sm:translate-x-8 text-white font-black tracking-widest'
+                      : 'text-slate-950 font-black'
                   }`}
                 >
                   RENT
                 </span>
                 <ArrowRight
-                  className={`w-4 h-4 transition-all duration-300 delay-100 ease-out ${
+                  className={`w-3.5 h-3.5 sm:w-4 sm:h-4 transition-all duration-300 delay-100 ease-out ${
                     animatingBtn === 'rent'
-                      ? 'translate-x-10 sm:translate-x-12 scale-125 text-white'
-                      : 'text-slate-950/70 group-hover:translate-x-1.5'
+                      ? 'translate-x-6 sm:translate-x-12 scale-125 text-white'
+                      : 'text-slate-950/70 group-hover:translate-x-1'
                   }`}
                 />
               </div>
             </Link>
           </div>
 
-          {/* Integrated Search Box - Transparent Glassmorphic Design */}
+          {/* Integrated Search Box - Single-Row Glassmorphic Design on Mobile & Desktop */}
           <form
             onSubmit={handleSearchSubmit}
-            className="bg-slate-900/60 hover:bg-slate-900/75 backdrop-blur-xl p-2 rounded-2xl sm:rounded-3xl shadow-2xl border border-white/25 focus-within:border-amber-400/80 focus-within:bg-slate-900/85 flex flex-col sm:flex-row items-center gap-2 max-w-2xl mx-auto text-white transition-all duration-300"
+            className="bg-slate-950/75 hover:bg-slate-950/85 backdrop-blur-2xl p-1.5 sm:p-2 rounded-2xl sm:rounded-full shadow-2xl border border-white/20 focus-within:border-amber-400 focus-within:bg-slate-950/90 flex items-center gap-1.5 sm:gap-2 max-w-lg sm:max-w-2xl mx-auto text-white transition-all duration-300 w-full"
           >
-            <div className="flex items-center gap-3 px-3.5 py-2.5 w-full flex-1">
-              <Search className="w-5 h-5 text-amber-400 shrink-0" />
+            <div className="flex items-center gap-2 sm:gap-3 px-2.5 sm:px-3.5 py-1.5 sm:py-2 flex-1 min-w-0">
+              <Search className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400 shrink-0" />
               <input
                 type="text"
                 placeholder="Search location, area or property..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="bg-transparent w-full focus:outline-none text-xs sm:text-sm font-medium text-white placeholder:text-slate-300"
+                className="bg-transparent w-full focus:outline-none text-xs sm:text-sm font-medium text-white placeholder:text-slate-300 truncate"
               />
               {searchTerm && (
                 <button
                   type="button"
                   onClick={() => setSearchTerm('')}
-                  className="text-slate-300 hover:text-white p-1 transition"
+                  className="text-slate-300 hover:text-white p-1 transition shrink-0"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-3.5 h-3.5" />
                 </button>
               )}
             </div>
 
             <button
               type="submit"
-              className="w-full sm:w-auto px-6 py-3 rounded-xl sm:rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs sm:text-sm shadow-lg hover:scale-105 active:scale-95 transition-all duration-200 flex items-center justify-center gap-2"
+              className="px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl sm:rounded-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs sm:text-sm shadow-md hover:scale-105 active:scale-95 transition-all duration-200 flex items-center justify-center gap-1.5 shrink-0"
             >
               <span>Search</span>
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
           </form>
 
-          {/* Quick Locality Jump Chips */}
-          <div className="flex items-center justify-center flex-wrap gap-2 pt-2">
-            <span className="text-[11px] font-bold text-slate-300 uppercase tracking-wider mr-1">
-              Popular Localities:
-            </span>
-            {popularAreas.map((area) => (
-              <button
-                key={area}
-                onClick={() => handleAreaSelect(area)}
-                className={`px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-md transition-all duration-200 hover:scale-105 active:scale-95 ${
-                  selectedArea === area
-                    ? 'bg-amber-400 text-slate-950 font-bold shadow-md'
-                    : 'bg-black/40 text-slate-300 hover:bg-white/20 border border-white/10'
-                }`}
-              >
-                {area === 'All' ? 'All Areas' : area}
-              </button>
-            ))}
+          {/* Quick Locality Jump Chips - Sleek Mobile Horizontal Scroll Ribbon */}
+          <div className="w-full pt-0.5">
+            <div className="flex items-center justify-start sm:justify-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-1 px-1 sm:flex-wrap">
+              <span className="text-[10px] sm:text-[11px] font-bold text-amber-300 uppercase tracking-wider shrink-0 flex items-center gap-1 bg-slate-950/70 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/10">
+                <MapPin className="w-3 h-3 text-amber-400" />
+                Popular:
+              </span>
+              {popularAreas.map((area) => (
+                <button
+                  key={area}
+                  onClick={() => handleAreaSelect(area)}
+                  className={`px-3 py-1 rounded-full text-[11px] sm:text-xs font-semibold backdrop-blur-md transition-all duration-200 shrink-0 hover:scale-105 active:scale-95 ${
+                    selectedArea === area
+                      ? 'bg-amber-400 text-slate-950 font-bold shadow-md ring-1 ring-amber-300'
+                      : 'bg-slate-950/60 text-slate-200 hover:bg-white/20 border border-white/15'
+                  }`}
+                >
+                  {area === 'All' ? 'All Areas' : area}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </section>

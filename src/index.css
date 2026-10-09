@@ -29,3 +29,12 @@ html, body {
   background-color: rgba(0,0,0,0.2);
   border-radius: 2px;
 }
+
+/* Hide scrollbars for smooth mobile touch scrolls */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
