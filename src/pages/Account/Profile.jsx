@@ -413,12 +413,19 @@ export default function Profile() {
       )}
 
       {selectedPaymentSuccess && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200">
-          <FizzyPaymentSuccess
-            property={selectedPaymentSuccess.property}
-            paymentDetails={selectedPaymentSuccess.paymentDetails}
-            onClose={() => setSelectedPaymentSuccess(null)}
-          />
+        <div 
+          className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200 overflow-y-auto overscroll-contain"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setSelectedPaymentSuccess(null);
+          }}
+        >
+          <div className="w-full max-w-lg my-auto max-h-[92dvh] overflow-y-auto">
+            <FizzyPaymentSuccess
+              property={selectedPaymentSuccess.property}
+              paymentDetails={selectedPaymentSuccess.paymentDetails}
+              onClose={() => setSelectedPaymentSuccess(null)}
+            />
+          </div>
         </div>
       )}
     </div>
