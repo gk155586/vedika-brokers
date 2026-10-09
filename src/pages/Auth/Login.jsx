@@ -1,6 +1,7 @@
 // src/pages/Auth/Login.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { getAssetUrl } from '@/utils/assets';
 import { 
   Building2, 
   Mail, 
@@ -115,7 +116,7 @@ export default function Login({ initialRegister = false }) {
           <div className="relative z-10 space-y-3">
             <Link to="/" className="inline-flex items-center gap-2.5 group">
               <img
-                src="/logo-white.png"
+                src={getAssetUrl('/logo-white.png')}
                 alt="Vedika Brokers"
                 className="h-14 w-auto object-contain transition-transform group-hover:scale-105"
               />

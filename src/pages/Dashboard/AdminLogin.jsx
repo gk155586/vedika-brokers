@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { ShieldCheck, Lock, Mail, ArrowRight, RefreshCw, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { checkRateLimit } from '@/services/authSecurity';
+import { getAssetUrl } from '@/utils/assets';
 
 export default function AdminLogin() {
   const navigate = useNavigate();
@@ -51,7 +52,7 @@ export default function AdminLogin() {
       <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-8 shadow-2xl space-y-6 text-white">
         <div className="text-center space-y-3">
           <img
-            src="/logo-white.png"
+            src={getAssetUrl('/logo-white.png')}
             alt="Vedika Brokers Logo"
             className="h-20 w-auto object-contain mx-auto drop-shadow-md"
           />

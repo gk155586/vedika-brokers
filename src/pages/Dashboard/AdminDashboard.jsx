@@ -65,6 +65,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { uploadMediaFile } from '@/services/mediaService';
 import UserActivityModal from '@/components/UserActivityModal';
 import AdminMorphingSubmit from '@/components/AdminMorphingSubmit';
+import { getAssetUrl } from '@/utils/assets';
 
 export default function AdminDashboard() {
   const { user, signOut } = useAuth();
@@ -1048,7 +1049,7 @@ export default function AdminDashboard() {
         <div className="p-4 sm:p-5 border-b border-white/10 flex items-center justify-between relative z-10 backdrop-blur-xs">
           <div className="flex items-center gap-2.5">
             <img
-              src="/logo-icon.png"
+              src={getAssetUrl('/logo-icon.png')}
               alt="Vedika Brokers Emblem"
               className="w-9 h-9 object-contain shrink-0 drop-shadow-md"
             />
