@@ -4832,7 +4832,7 @@ export default function AdminDashboard() {
                 <table className="w-full text-left text-xs">
                   <thead className="bg-slate-50 text-slate-500 font-bold uppercase tracking-wider border-b border-slate-200">
                     <tr>
-                      <th className="px-4 py-3">Claim ID</th>
+                      <th className="px-4 py-3">Claim & Txn ID</th>
                       <th className="px-4 py-3">Property</th>
                       <th className="px-4 py-3">User UPI ID</th>
                       <th className="px-4 py-3">Reason</th>
@@ -4849,69 +4849,114 @@ export default function AdminDashboard() {
                         </td>
                       </tr>
                     ) : (
-                      filteredRefunds.map((r) => (
-                        <tr key={r.id} className="hover:bg-slate-50/70 transition">
-                          <td className="px-4 py-3 font-mono font-bold text-slate-900">{r.id}</td>
-                          <td className="px-4 py-3">
-                            <span className="font-bold text-slate-800 block truncate max-w-xs">{r.property?.title || r.property_id}</span>
-                            <span className="text-[10px] text-slate-400">{r.property?.area || r.property?.city || 'Local Area'}</span>
-                          </td>
-                          <td className="px-4 py-3">
-                            <div className="flex items-center gap-1.5 font-mono text-blue-900 font-bold">
-                              <span>{r.user_upi_id}</span>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  navigator.clipboard.writeText(r.user_upi_id);
-                                  alert(`Copied UPI ID: ${r.user_upi_id}`);
-                                }}
-                                className="p-1 text-slate-400 hover:text-blue-900"
-                                title="Copy UPI ID"
-                              >
-                                <Copy className="w-3 h-3" />
-                              </button>
-                            </div>
-                          </td>
-                          <td className="px-4 py-3 max-w-xs truncate text-slate-600">{r.reason || 'Visited property; not proceeding'}</td>
-                          <td className="px-4 py-3 text-center font-bold text-slate-900 font-mono">₹{r.amount || 500}</td>
-                          <td className="px-4 py-3 text-center">
-                            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                              r.status === 'processed'
-                                ? 'bg-emerald-100 text-emerald-800'
-                                : r.status === 'rejected'
-                                ? 'bg-red-100 text-red-800'
-                                : 'bg-amber-100 text-amber-800'
-                            }`}>
-                              {r.status === 'processed' ? 'Paid' : r.status === 'rejected' ? 'Rejected' : 'Pending'}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 text-right">
-                            {r.status !== 'processed' && (
-                              <div className="flex items-center justify-end gap-1.5">
+                      filteredRefunds.map((r) => {
+                        const isSettled = ['processed', 'paid', 'approved', 'refunded'].includes(r.status);
+                        const isRejected = r.status === 'rejected';
+
+                        return (
+                          <tr key={r.id} className="hover:bg-slate-50/70 transition">
+                            <td className="px-4 py-3">
+                              <span className="font-mono font-bold text-slate-900 block">{r.id}</span>
+                              <span className="text-[10px] font-mono text-blue-900 bg-blue-50 px-1.5 py-0.5 rounded inline-block mt-0.5" title="Original Payment Transaction ID">
+                                Txn: {r.transaction_id || r.payment_id || 'VERIFIED'}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3">
+                              <span className="font-bold text-slate-800 block truncate max-w-xs">{r.property?.title || r.property_id}</span>
+                              <span className="text-[10px] text-slate-400">{r.property?.area || r.property?.city || 'Local Area'}</span>
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-1.5 font-mono text-blue-900 font-bold">
+                                <span>{r.user_upi_id}</span>
                                 <button
-                                  onClick={async () => {
-                                    await dataStore.updateRefundStatus(r.id, 'processed', 'Processed via UPI');
-                                    alert(`Refund ${r.id} marked as paid.`);
-                                    refreshData();
+                                  type="button"
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(r.user_upi_id);
+                                    alert(`Copied UPI ID: ${r.user_upi_id}`);
                                   }}
-                                  className="bg-emerald-600 text-white font-bold px-2.5 py-1 rounded-lg text-[10px] hover:bg-emerald-700 transition flex items-center gap-1"
+                                  className="p-1 text-slate-400 hover:text-blue-900"
+                                  title="Copy UPI ID"
                                 >
-                                  <Check className="w-3 h-3" /> Mark Paid
-                                </button>
-                                <button
-                                  onClick={async () => {
-                                    await dataStore.updateRefundStatus(r.id, 'rejected', 'Refund request rejected');
-                                    refreshData();
-                                  }}
-                                  className="bg-red-100 text-red-700 font-bold px-2 py-1 rounded-lg text-[10px] hover:bg-red-200 transition flex items-center gap-1"
-                                >
-                                  <X className="w-3 h-3" /> Reject
+                                  <Copy className="w-3 h-3" />
                                 </button>
                               </div>
-                            )}
-                          </td>
-                        </tr>
-                      ))
+                            </td>
+                            <td className="px-4 py-3 max-w-xs truncate text-slate-600">
+                              <div>{r.reason || 'Visited property; not proceeding'}</div>
+                              {r.admin_notes && (
+                                <div className="text-[10px] text-amber-700 font-semibold italic">Note: {r.admin_notes}</div>
+                              )}
+                            </td>
+                            <td className="px-4 py-3 text-center font-bold text-slate-900 font-mono">₹{r.amount || 500}</td>
+                            <td className="px-4 py-3 text-center">
+                              <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                                isSettled
+                                  ? 'bg-emerald-100 text-emerald-800'
+                                  : isRejected
+                                  ? 'bg-red-100 text-red-800'
+                                  : 'bg-amber-100 text-amber-800'
+                              }`}>
+                                {isSettled ? 'Paid' : isRejected ? 'Rejected' : 'Pending'}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-right">
+                              {isSettled ? (
+                                <span className="text-emerald-700 font-bold text-[11px] inline-flex items-center gap-1">
+                                  <Check className="w-3.5 h-3.5" /> Paid & Closed
+                                </span>
+                              ) : isRejected ? (
+                                <div className="flex items-center justify-end gap-1.5">
+                                  <span className="text-red-600 font-bold text-[10px]">Rejected</span>
+                                  <button
+                                    onClick={async () => {
+                                      if (window.confirm(`Reconsider refund ${r.id} and mark as paid?`)) {
+                                        await dataStore.updateRefundStatus(r.id, 'processed', 'Reconsidered & Paid via UPI');
+                                        refreshData();
+                                      }
+                                    }}
+                                    className="bg-emerald-600 text-white font-bold px-2 py-0.5 rounded text-[10px] hover:bg-emerald-700 transition"
+                                    title="Reopen and mark as paid"
+                                  >
+                                    Reopen
+                                  </button>
+                                </div>
+                              ) : (
+                                <div className="flex items-center justify-end gap-1.5">
+                                  <button
+                                    onClick={async () => {
+                                      await dataStore.updateRefundStatus(r.id, 'processed', 'Processed via UPI');
+                                      alert(`Refund ${r.id} marked as paid.`);
+                                      refreshData();
+                                    }}
+                                    className="bg-emerald-600 text-white font-bold px-2.5 py-1 rounded-lg text-[10px] hover:bg-emerald-700 transition flex items-center gap-1"
+                                  >
+                                    <Check className="w-3 h-3" /> Mark Paid
+                                  </button>
+                                  <button
+                                    onClick={async () => {
+                                      const reason = window.prompt(
+                                        'Reason for rejecting this refund request (will be shown to user):',
+                                        'Eligibility criteria not met'
+                                      );
+                                      if (reason !== null) {
+                                        await dataStore.updateRefundStatus(
+                                          r.id,
+                                          'rejected',
+                                          reason.trim() || 'Refund request rejected'
+                                        );
+                                        refreshData();
+                                      }
+                                    }}
+                                    className="bg-red-100 text-red-700 font-bold px-2 py-1 rounded-lg text-[10px] hover:bg-red-200 transition flex items-center gap-1"
+                                  >
+                                    <X className="w-3 h-3" /> Reject
+                                  </button>
+                                </div>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })
                     )}
                   </tbody>
                 </table>

@@ -24,7 +24,10 @@ import {
   ChevronLeft,
   ChevronRight,
   X,
-  Film
+  Film,
+  Clock,
+  CheckCircle2,
+  XCircle
 } from 'lucide-react';
 import dataStore from '@/services/dataStore';
 import { useAuth } from '@/hooks/useAuth';
@@ -52,6 +55,7 @@ export default function PropertyDetails() {
   const [visitModalOpen, setVisitModalOpen] = useState(false);
   const [refundModalOpen, setRefundModalOpen] = useState(false);
   const [enquiryModalOpen, setEnquiryModalOpen] = useState(false);
+  const [propertyRefund, setPropertyRefund] = useState(null);
 
   const loadData = async () => {
     try {
@@ -64,8 +68,11 @@ export default function PropertyDetails() {
         if (user && user.id && user.id !== 'guest') {
           const fav = await dataStore.isFavorite(user.id, prop.id);
           setIsFav(fav);
+          const ref = await dataStore.getRefundForProperty(user.id, prop.id);
+          setPropertyRefund(ref || null);
         } else {
           setIsFav(false);
+          setPropertyRefund(null);
         }
 
         const all = await dataStore.getProperties();
@@ -75,10 +82,12 @@ export default function PropertyDetails() {
         setSimilarProperties(similar);
       } else {
         setProperty(null);
+        setPropertyRefund(null);
       }
     } catch (err) {
       console.error('Error loading property:', err);
       setProperty(null);
+      setPropertyRefund(null);
     } finally {
       setLoading(false);
     }
@@ -491,15 +500,62 @@ export default function PropertyDetails() {
                     <Calendar className="w-4 h-4" /> Schedule Physical Visit
                   </button>
 
-                  {/* ₹500 REFUND BUTTON */}
+                  {/* ₹500 REFUND BUTTON OR STATUS BADGE */}
                   <div className="pt-2 border-t border-emerald-200">
-                    <p className="text-[11px] text-slate-500 mb-1.5">Did you visit this property?</p>
-                    <button
-                      onClick={() => setRefundModalOpen(true)}
-                      className="w-full bg-white hover:bg-red-50 text-red-600 border border-red-300 font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition"
-                    >
-                      <RefreshCw className="w-3.5 h-3.5" /> No — Request ₹500 Refund
-                    </button>
+                    {!propertyRefund ? (
+                      <>
+                        <p className="text-[11px] text-slate-500 mb-1.5">Did you visit this property?</p>
+                        <button
+                          onClick={() => setRefundModalOpen(true)}
+                          className="w-full bg-white hover:bg-red-50 text-red-600 border border-red-300 font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition"
+                        >
+                          <RefreshCw className="w-3.5 h-3.5" /> No — Request ₹500 Refund
+                        </button>
+                      </>
+                    ) : propertyRefund.status === 'pending' ? (
+                      <div className="bg-amber-50 border border-amber-300 rounded-xl p-3 text-xs text-amber-900 space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold flex items-center gap-1.5">
+                            <Clock className="w-3.5 h-3.5 text-amber-600 animate-pulse" /> ₹500 Refund Under Review
+                          </span>
+                          <span className="text-[10px] font-mono font-bold bg-amber-200/80 px-2 py-0.5 rounded">
+                            #{propertyRefund.id?.slice(-6) || 'ACTIVE'}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-amber-800 leading-tight">
+                          Receiving UPI: <strong className="font-mono">{propertyRefund.user_upi_id}</strong> (Verification within 24h)
+                        </p>
+                      </div>
+                    ) : ['processed', 'paid', 'approved', 'refunded'].includes(propertyRefund.status) ? (
+                      <div className="bg-emerald-50 border border-emerald-300 rounded-xl p-3 text-xs text-emerald-900 space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold flex items-center gap-1.5">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> ₹500 Refund Paid
+                          </span>
+                          <span className="text-[10px] font-mono font-bold bg-emerald-200 text-emerald-900 px-2 py-0.5 rounded uppercase">
+                            Settled
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-emerald-800 leading-tight font-mono">
+                          Transferred to: {propertyRefund.user_upi_id}
+                        </p>
+                      </div>
+                    ) : (
+                      /* Rejected */
+                      <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-xs text-red-900 space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold flex items-center gap-1.5">
+                            <XCircle className="w-3.5 h-3.5 text-red-600" /> Refund Request Closed
+                          </span>
+                          <span className="text-[10px] font-mono font-bold bg-red-100 text-red-800 px-2 py-0.5 rounded uppercase">
+                            Rejected
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-red-700 leading-tight">
+                          {propertyRefund.admin_notes || 'Eligibility criteria not met. Further refund requests are closed.'}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
               ) : (

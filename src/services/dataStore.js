@@ -1410,22 +1410,75 @@ export class DataStore {
   }
 
   // --- REFUNDS (₹500 post-visit workflow) ---
-  async requestRefund(userId, propertyId, reason, upiId) {
+  async getRefundForProperty(userId, propertyId) {
+    if (!userId || !propertyId) return null;
     const refunds = JSON.parse(localStorage.getItem('vb_refunds') || '[]');
+    return refunds.find((r) => r.user_id === userId && r.property_id === propertyId) || null;
+  }
+
+  async requestRefund(userId, propertyId, reason, upiId) {
+    if (!userId || userId === 'guest') {
+      throw new Error("Please log in to submit a refund request.");
+    }
+    if (!propertyId) {
+      throw new Error("Property identifier is required.");
+    }
+
+    // 1. Verify that user actually unlocked this property
+    const unlocks = JSON.parse(localStorage.getItem('vb_unlocks') || '[]');
+    const userUnlock = unlocks.find((u) => u.user_id === userId && u.property_id === propertyId);
+    if (!userUnlock) {
+      throw new Error("No verified address unlock found for this property. Only paid & unlocked properties are eligible for a refund.");
+    }
+
+    // 2. Fetch authentic payment record to bind the genuine transaction ID
+    const payments = JSON.parse(localStorage.getItem('vb_payments') || '[]');
+    const originalPayment = payments.find(
+      (p) => p.id === userUnlock.payment_id || (p.user_id === userId && p.property_id === propertyId)
+    );
+    const verifiedTxnId = originalPayment?.razorpay_payment_id || userUnlock.payment_id || `TXN_${userUnlock.id}`;
+
+    // 3. Check for any existing refund on this exact property for this user
+    const refunds = JSON.parse(localStorage.getItem('vb_refunds') || '[]');
+    const existing = refunds.find((r) => r.user_id === userId && r.property_id === propertyId);
+
+    if (existing) {
+      if (existing.status === 'pending') {
+        throw new Error(
+          `A refund request for this property is already pending admin review (REF #${existing.id}). Multiple requests are not permitted.`
+        );
+      }
+      if (['processed', 'paid', 'approved', 'refunded'].includes(existing.status)) {
+        throw new Error(
+          `A ₹500 refund has already been completed and paid for this property (REF #${existing.id}). Further refund requests are not permitted.`
+        );
+      }
+      if (existing.status === 'rejected') {
+        const rejectionReason = existing.admin_notes ? `: "${existing.admin_notes}"` : '.';
+        throw new Error(
+          `Your refund request for this property was reviewed and rejected by admin${rejectionReason} Re-requests with different transaction IDs are not permitted.`
+        );
+      }
+    }
+
     const settings = this.getSettings();
     const newRefund = {
       id: `ref-${Date.now()}`,
       user_id: userId,
       property_id: propertyId,
+      unlock_id: userUnlock.id,
+      payment_id: userUnlock.payment_id || originalPayment?.id || null,
+      transaction_id: verifiedTxnId,
       amount: settings.refund_amount || 500,
-      reason,
-      user_upi_id: upiId,
+      reason: (reason || '').trim() || 'Property did not match expectation upon visit',
+      user_upi_id: (upiId || '').trim(),
       status: 'pending',
       created_at: new Date().toISOString(),
     };
+
     refunds.unshift(newRefund);
     localStorage.setItem('vb_refunds', JSON.stringify(refunds));
-    this.logAction(`₹500 refund requested for property ${propertyId}`, 'Refund', newRefund.id);
+    this.logAction(`₹500 refund requested for property ${propertyId} (Txn: ${verifiedTxnId})`, 'Refund', newRefund.id);
     this.notify();
     return newRefund;
   }
@@ -1433,10 +1486,21 @@ export class DataStore {
   async getRefunds(userId = null) {
     const refunds = JSON.parse(localStorage.getItem('vb_refunds') || '[]');
     const properties = await this.getProperties();
-    const enhanced = refunds.map((r) => ({
-      ...r,
-      property: properties.find((p) => p.id === r.property_id),
-    }));
+    const payments = JSON.parse(localStorage.getItem('vb_payments') || '[]');
+    const unlocks = JSON.parse(localStorage.getItem('vb_unlocks') || '[]');
+
+    const enhanced = refunds.map((r) => {
+      const prop = properties.find((p) => p.id === r.property_id);
+      const unl = unlocks.find((u) => u.user_id === r.user_id && u.property_id === r.property_id);
+      const pay = payments.find(
+        (p) => p.id === unl?.payment_id || (p.user_id === r.user_id && p.property_id === r.property_id)
+      );
+      return {
+        ...r,
+        property: prop,
+        transaction_id: r.transaction_id || pay?.razorpay_payment_id || unl?.payment_id || 'N/A',
+      };
+    });
     return userId ? enhanced.filter((r) => r.user_id === userId) : enhanced;
   }
 

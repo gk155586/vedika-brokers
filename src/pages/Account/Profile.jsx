@@ -13,7 +13,8 @@ import {
   CheckCircle2, 
   LogOut,
   Building2,
-  ExternalLink
+  ExternalLink,
+  XCircle
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import dataStore from '@/services/dataStore';
@@ -192,63 +193,99 @@ export default function Profile() {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {unlocks.map((item) => (
-                    <div
-                      key={item.id}
-                      className="bg-white/10 hover:bg-white/15 backdrop-blur-xl p-5 rounded-2xl border border-white/20 shadow-xl space-y-3 transition-all"
-                    >
-                      <div className="flex justify-between items-start gap-2">
-                        <div>
-                          <span className="text-[10px] font-mono bg-amber-400/20 text-amber-300 font-bold px-2 py-0.5 rounded border border-amber-400/30">
-                            {item.property?.property_code || 'VB-PUN'}
-                          </span>
-                          <h3 className="text-sm font-bold text-white mt-1">{item.property?.title}</h3>
-                          <p className="text-xs text-slate-300">{item.property?.locality}, {item.property?.area}</p>
+                  {unlocks.map((item) => {
+                    const existingRefund = refunds.find((r) => r.property_id === item.property_id);
+                    const isPaid = existingRefund && ['processed', 'paid', 'approved', 'refunded'].includes(existingRefund.status);
+                    const isRejected = existingRefund && existingRefund.status === 'rejected';
+                    const isPending = existingRefund && existingRefund.status === 'pending';
+
+                    return (
+                      <div
+                        key={item.id}
+                        className="bg-white/10 hover:bg-white/15 backdrop-blur-xl p-5 rounded-2xl border border-white/20 shadow-xl space-y-3 transition-all"
+                      >
+                        <div className="flex justify-between items-start gap-2">
+                          <div>
+                            <span className="text-[10px] font-mono bg-amber-400/20 text-amber-300 font-bold px-2 py-0.5 rounded border border-amber-400/30">
+                              {item.property?.property_code || 'VB-PUN'}
+                            </span>
+                            <h3 className="text-sm font-bold text-white mt-1">{item.property?.title}</h3>
+                            <p className="text-xs text-slate-300">{item.property?.locality}, {item.property?.area}</p>
+                          </div>
+                          <Link
+                            to={`/property/${item.property_id}`}
+                            className="text-xs font-bold text-amber-400 hover:text-amber-300 flex items-center gap-1 transition"
+                          >
+                            <span>View Flat</span> <ExternalLink className="w-3 h-3" />
+                          </Link>
                         </div>
-                        <Link
-                          to={`/property/${item.property_id}`}
-                          className="text-xs font-bold text-amber-400 hover:text-amber-300 flex items-center gap-1 transition"
-                        >
-                          <span>View Flat</span> <ExternalLink className="w-3 h-3" />
-                        </Link>
-                      </div>
 
-                      <div className="p-3 bg-emerald-950/40 border border-emerald-500/30 rounded-xl text-xs space-y-1">
-                        <p className="font-bold text-emerald-400 flex items-center gap-1">
-                          <CheckCircle2 className="w-3.5 h-3.5" /> Verified Address:
-                        </p>
-                        <p className="text-slate-100 font-medium leading-relaxed">{item.property?.address}</p>
-                      </div>
+                        <div className="p-3 bg-emerald-950/40 border border-emerald-500/30 rounded-xl text-xs space-y-1">
+                          <p className="font-bold text-emerald-400 flex items-center gap-1">
+                            <CheckCircle2 className="w-3.5 h-3.5" /> Verified Address:
+                          </p>
+                          <p className="text-slate-100 font-medium leading-relaxed">{item.property?.address}</p>
+                        </div>
 
-                      <div className="flex gap-2 pt-2 border-t border-white/10">
-                        <a
-                          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.property?.address || '')}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition shadow"
-                        >
-                          <Navigation className="w-3.5 h-3.5" /> Directions
-                        </a>
+                        <div className="flex gap-2 pt-2 border-t border-white/10">
+                          <a
+                            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.property?.address || '')}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition shadow"
+                          >
+                            <Navigation className="w-3.5 h-3.5" /> Directions
+                          </a>
+
+                          {!existingRefund && (
+                            <button
+                              onClick={() => setRefundModalProperty(item.property)}
+                              className="flex-1 bg-white/10 hover:bg-red-500/20 border border-white/20 hover:border-red-400/40 text-red-300 hover:text-red-200 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition"
+                            >
+                              <RefreshCw className="w-3.5 h-3.5" /> Request ₹500 Refund
+                            </button>
+                          )}
+
+                          {isPending && (
+                            <div
+                              title={`Refund request #${existingRefund.id} is under review`}
+                              className="flex-1 bg-amber-500/20 border border-amber-500/40 text-amber-300 py-2.5 px-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-default select-none"
+                            >
+                              <Clock className="w-3.5 h-3.5 animate-pulse text-amber-400" /> Refund Under Review
+                            </div>
+                          )}
+
+                          {isPaid && (
+                            <div
+                              title={`₹500 refund paid to ${existingRefund.user_upi_id}`}
+                              className="flex-1 bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 py-2.5 px-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-default select-none"
+                            >
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> ₹500 Refunded
+                            </div>
+                          )}
+
+                          {isRejected && (
+                            <div
+                              title={existingRefund.admin_notes || 'Refund request rejected by admin. Re-requests closed.'}
+                              className="flex-1 bg-red-500/20 border border-red-500/40 text-red-300 py-2.5 px-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-default select-none"
+                            >
+                              <XCircle className="w-3.5 h-3.5 text-red-400" /> Refund Rejected
+                            </div>
+                          )}
+                        </div>
 
                         <button
-                          onClick={() => setRefundModalProperty(item.property)}
-                          className="flex-1 bg-white/10 hover:bg-red-500/20 border border-white/20 hover:border-red-400/40 text-red-300 hover:text-red-200 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition"
+                          onClick={() => setSelectedPaymentSuccess({
+                            property: item.property,
+                            paymentDetails: { razorpay_payment_id: item.transaction_id || `PAY_UNL_${item.id}` }
+                          })}
+                          className="w-full text-center text-[11px] font-bold text-cyan-300 hover:text-white pt-1 flex items-center justify-center gap-1 transition"
                         >
-                          <RefreshCw className="w-3.5 h-3.5" /> Request ₹500 Refund
+                          <CheckCircle2 className="w-3 h-3 text-cyan-400" /> View Payment Successful Receipt
                         </button>
                       </div>
-
-                      <button
-                        onClick={() => setSelectedPaymentSuccess({
-                          property: item.property,
-                          paymentDetails: { razorpay_payment_id: item.transaction_id || `PAY_UNL_${item.id}` }
-                        })}
-                        className="w-full text-center text-[11px] font-bold text-cyan-300 hover:text-white pt-1 flex items-center justify-center gap-1 transition"
-                      >
-                        <CheckCircle2 className="w-3 h-3 text-cyan-400" /> View Payment Successful Receipt
-                      </button>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -327,43 +364,62 @@ export default function Profile() {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {refunds.map((r) => (
-                    <div
-                      key={r.id}
-                      className="bg-white/10 hover:bg-white/15 backdrop-blur-xl p-5 rounded-2xl border border-white/20 shadow-xl space-y-3 transition-all"
-                    >
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <span className="text-xs font-mono font-bold text-amber-400/90">REF ID: #{r.id}</span>
-                          <h4 className="text-sm font-bold text-white mt-0.5">{r.property?.title}</h4>
-                        </div>
-                        <span className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider border ${
-                          r.status === 'approved' || r.status === 'refunded'
-                            ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
-                            : r.status === 'rejected'
-                            ? 'bg-red-500/20 text-red-300 border-red-500/40'
-                            : 'bg-amber-500/20 text-amber-300 border-amber-500/40'
-                        }`}>
-                          {r.status}
-                        </span>
-                      </div>
+                  {refunds.map((r) => {
+                    const isPaid = ['processed', 'paid', 'approved', 'refunded'].includes(r.status);
+                    const isRejected = r.status === 'rejected';
 
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs bg-black/40 backdrop-blur-md p-3.5 rounded-xl border border-white/10">
-                        <div>
-                          <p className="text-slate-400 font-bold uppercase text-[10px]">Refund Amount</p>
-                          <p className="font-black text-amber-400 text-sm">₹{r.amount}</p>
+                    return (
+                      <div
+                        key={r.id}
+                        className="bg-white/10 hover:bg-white/15 backdrop-blur-xl p-5 rounded-2xl border border-white/20 shadow-xl space-y-3 transition-all"
+                      >
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <span className="text-xs font-mono font-bold text-amber-400/90">REF ID: #{r.id}</span>
+                            <h4 className="text-sm font-bold text-white mt-0.5">{r.property?.title}</h4>
+                            <p className="text-[10px] text-slate-300 font-mono mt-0.5">
+                              Txn Reference: <span className="text-amber-200">{r.transaction_id || r.payment_id || 'VERIFIED'}</span>
+                            </p>
+                          </div>
+                          <span className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider border ${
+                            isPaid
+                              ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                              : isRejected
+                              ? 'bg-red-500/20 text-red-300 border-red-500/40'
+                              : 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                          }`}>
+                            {isPaid ? 'Paid' : isRejected ? 'Rejected' : 'Under Review'}
+                          </span>
                         </div>
-                        <div>
-                          <p className="text-slate-400 font-bold uppercase text-[10px]">Receiving UPI</p>
-                          <p className="font-mono text-slate-200">{r.user_upi_id}</p>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs bg-black/40 backdrop-blur-md p-3.5 rounded-xl border border-white/10">
+                          <div>
+                            <p className="text-slate-400 font-bold uppercase text-[10px]">Refund Amount</p>
+                            <p className="font-black text-amber-400 text-sm">₹{r.amount}</p>
+                          </div>
+                          <div>
+                            <p className="text-slate-400 font-bold uppercase text-[10px]">Receiving UPI</p>
+                            <p className="font-mono text-slate-200">{r.user_upi_id}</p>
+                          </div>
+                          <div>
+                            <p className="text-slate-400 font-bold uppercase text-[10px]">Reason</p>
+                            <p className="text-slate-300 truncate">{r.reason}</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-slate-400 font-bold uppercase text-[10px]">Reason</p>
-                          <p className="text-slate-300 truncate">{r.reason}</p>
-                        </div>
+
+                        {r.admin_notes && (
+                          <div className={`p-2.5 rounded-xl text-xs border ${
+                            isRejected
+                              ? 'bg-red-950/40 border-red-500/30 text-red-200'
+                              : 'bg-slate-900/60 border-white/10 text-slate-300'
+                          }`}>
+                            <span className="font-bold text-[10px] uppercase block tracking-wider text-slate-400 mb-0.5">Admin Remark:</span>
+                            <span>{r.admin_notes}</span>
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
