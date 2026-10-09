@@ -98,11 +98,26 @@ export default function Login({ initialRegister = false }) {
   };
 
   return (
-    <div className="min-h-[82vh] py-6 sm:py-12 px-3 sm:px-6 lg:px-8 max-w-6xl mx-auto flex items-center justify-center">
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 w-full">
+    <div className="min-h-screen sm:min-h-[82vh] py-3 sm:py-12 px-3 sm:px-6 lg:px-8 pb-32 sm:pb-12 max-w-6xl mx-auto flex flex-col justify-start sm:justify-center items-center">
+      {/* Mobile Top Header (Clean and Compact for Phones) */}
+      <div className="lg:hidden w-full max-w-md mx-auto text-center mb-3 space-y-1">
+        <Link to="/" className="inline-flex items-center gap-2 group">
+          <img
+            src={getAssetUrl('/logo.png')}
+            alt="Vedika Brokers"
+            className="h-10 w-auto object-contain mx-auto"
+          />
+        </Link>
+        <div className="inline-flex items-center gap-1.5 bg-blue-900/10 text-blue-950 px-3 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider">
+          <ShieldCheck className="w-3.5 h-3.5 text-amber-500" />
+          <span>Direct Broker Desk &bull; Nanded</span>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-3xl border border-slate-200 shadow-xl sm:shadow-2xl overflow-hidden flex flex-col lg:grid lg:grid-cols-12 w-full max-w-md lg:max-w-none mx-auto">
         
-        {/* LEFT COLUMN: LUXURY HOUSE IMAGE & VERIFIED BRANDING */}
-        <div className="lg:col-span-5 xl:col-span-6 relative bg-slate-950 text-white p-7 sm:p-10 lg:p-12 flex flex-col justify-between overflow-hidden min-h-[380px] sm:min-h-[540px]">
+        {/* LEFT COLUMN: LUXURY HOUSE IMAGE & VERIFIED BRANDING (Shown on Desktop) */}
+        <div className="hidden lg:flex lg:col-span-5 xl:col-span-6 relative bg-slate-950 text-white p-7 sm:p-10 lg:p-12 flex-col justify-between overflow-hidden min-h-[540px]">
           {/* Background House Image with High Quality Architecture */}
           <img
             src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=85"
@@ -170,8 +185,8 @@ export default function Login({ initialRegister = false }) {
         </div>
 
         {/* RIGHT COLUMN: GENUINE LOGIN & REGISTER FORM */}
-        <div className="lg:col-span-7 xl:col-span-6 p-6 sm:p-10 lg:p-12 flex flex-col justify-center bg-white">
-          <div className="max-w-md w-full mx-auto space-y-6">
+        <div className="w-full lg:col-span-7 xl:col-span-6 p-4 sm:p-8 lg:p-12 flex flex-col justify-center bg-white">
+          <div className="max-w-md w-full mx-auto space-y-5 sm:space-y-6">
             
             {/* Top Switcher Tabs (Sign In vs Create Account) */}
             <div className="flex items-center bg-slate-100 p-1.5 rounded-2xl border border-slate-200">
@@ -252,7 +267,7 @@ export default function Login({ initialRegister = false }) {
                       placeholder="Enter your full name"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className="bg-transparent w-full focus:outline-none placeholder:text-slate-400 font-medium text-xs sm:text-sm text-slate-900"
+                      className="bg-transparent w-full focus:outline-none placeholder:text-slate-400 font-medium text-base sm:text-sm text-slate-900"
                     />
                   </div>
                 </div>
@@ -273,7 +288,7 @@ export default function Login({ initialRegister = false }) {
                       placeholder="Enter your 10-digit mobile number"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      className="bg-transparent w-full focus:outline-none placeholder:text-slate-400 font-medium text-xs sm:text-sm text-slate-900"
+                      className="bg-transparent w-full focus:outline-none placeholder:text-slate-400 font-medium text-base sm:text-sm text-slate-900"
                     />
                   </div>
                 </div>
@@ -290,7 +305,7 @@ export default function Login({ initialRegister = false }) {
                     placeholder="Enter your email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="bg-transparent w-full focus:outline-none placeholder:text-slate-400 font-medium text-xs sm:text-sm text-slate-900"
+                    className="bg-transparent w-full focus:outline-none placeholder:text-slate-400 font-medium text-base sm:text-sm text-slate-900"
                   />
                 </div>
               </div>
@@ -317,7 +332,7 @@ export default function Login({ initialRegister = false }) {
                     placeholder="Enter your password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="bg-transparent w-full focus:outline-none placeholder:text-slate-400 font-medium text-xs sm:text-sm text-slate-900"
+                    className="bg-transparent w-full focus:outline-none placeholder:text-slate-400 font-medium text-base sm:text-sm text-slate-900"
                   />
                   <button
                     type="button"
@@ -342,7 +357,7 @@ export default function Login({ initialRegister = false }) {
                       placeholder="Re-enter your password"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="bg-transparent w-full focus:outline-none placeholder:text-slate-400 font-medium text-xs sm:text-sm text-slate-900"
+                      className="bg-transparent w-full focus:outline-none placeholder:text-slate-400 font-medium text-base sm:text-sm text-slate-900"
                     />
                   </div>
                 </div>

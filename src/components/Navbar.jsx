@@ -215,7 +215,7 @@ export default function Navbar() {
 
               {/* Dropdown Menu Housing Login & Register Pages */}
               {userDropdownOpen && (
-                <div className="absolute right-0 mt-3 w-64 sm:w-72 bg-slate-900/95 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/10 py-2 z-50 animate-in fade-in zoom-in-95 duration-200 overflow-hidden text-white">
+                <div className="absolute right-0 mt-3 w-64 sm:w-72 max-w-[calc(100vw-1.5rem)] bg-slate-900/95 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/10 py-2 z-50 animate-in fade-in zoom-in-95 duration-200 overflow-hidden text-white">
                   {user ? (
                     <div>
                       <div className="px-4 py-3 bg-white/5 border-b border-white/10">

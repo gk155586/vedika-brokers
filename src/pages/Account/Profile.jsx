@@ -20,6 +20,7 @@ import dataStore from '@/services/dataStore';
 import PropertyCard from '@/components/PropertyCard';
 import RefundRequestModal from '@/components/RefundRequestModal';
 import FizzyPaymentSuccess from '@/components/FizzyPaymentSuccess';
+import { getAssetUrl } from '@/utils/assets';
 
 export default function Profile() {
   const { user, signOut } = useAuth();
@@ -79,8 +80,8 @@ export default function Profile() {
       {/* 1. Full-screen Background Video (Playing flats & apartments tour in background) */}
       <div className="fixed inset-0 w-full h-full overflow-hidden pointer-events-none z-0">
         <video
-          src="/tour/full-tour-merged.mp4"
-          poster="/tour/1.jpg"
+          src={getAssetUrl('/tour/full-tour-merged.mp4')}
+          poster={getAssetUrl('/tour/1.jpg')}
           autoPlay
           loop
           muted
