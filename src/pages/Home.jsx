@@ -1,6 +1,7 @@
 // src/pages/Home.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { getAssetUrl } from '@/utils/assets';
 import { 
   Building2, 
   Search, 
@@ -269,8 +270,8 @@ export default function Home() {
         <div className="absolute inset-0 w-full h-full overflow-hidden z-0">
           <video
             ref={videoRef}
-            src="/tour/full-tour-merged.mp4"
-            poster="/tour/1.jpg"
+            src={getAssetUrl('/tour/full-tour-merged.mp4')}
+            poster={getAssetUrl('/tour/1.jpg')}
             autoPlay
             loop
             muted

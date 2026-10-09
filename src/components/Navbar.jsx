@@ -2,6 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { getAssetUrl } from '@/utils/assets';
 import { 
   Building2, 
   Home, 
@@ -86,7 +87,7 @@ export default function Navbar() {
             className="flex items-center gap-3 group"
           >
             <img
-              src="/logo-white.png"
+              src={getAssetUrl('/logo-white.png')}
               alt="Vedika Brokers"
               className="h-10 sm:h-12 w-auto object-contain transition-all duration-300 group-hover:scale-105 drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)]"
             />

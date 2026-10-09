@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import TourScene from './TourScene';
 import ScheduleVisitModal from './ScheduleVisitModal';
+import { getAssetUrl } from '@/utils/assets';
 
 export const PROPERTY_SCENES = [
   {
@@ -246,7 +247,7 @@ export default function PropertyTour({ scenes = PROPERTY_SCENES }) {
             className="flex items-center space-x-2.5 text-left group"
           >
             <img
-              src="/logo-icon.png"
+              src={getAssetUrl('/logo-icon.png')}
               alt="Vedika Brokers"
               className="w-9 h-9 object-contain group-hover:scale-105 transition-transform shrink-0"
             />
@@ -429,7 +430,7 @@ export default function PropertyTour({ scenes = PROPERTY_SCENES }) {
             <div className="relative bg-black aspect-[16/9] w-full flex items-center justify-center overflow-hidden">
               <video
                 ref={mergedVideoRef}
-                src="/tour/full-tour-merged.mp4"
+                src={getAssetUrl('/tour/full-tour-merged.mp4')}
                 autoPlay
                 playsInline
                 loop

@@ -3,6 +3,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Building2, Phone, Mail, MapPin, Shield, CheckCircle2, MessageSquare } from 'lucide-react';
 import dataStore from '@/services/dataStore';
+import { getAssetUrl } from '@/utils/assets';
 
 export default function Footer() {
   const settings = dataStore.getSettings();
@@ -21,7 +22,7 @@ export default function Footer() {
                 title="Vedika Brokers - Home"
               >
                 <img
-                  src="/logo-white.png"
+                  src={getAssetUrl('/logo-white.png')}
                   alt="Vedika Brokers"
                   className="h-14 w-auto object-contain transition-transform group-hover:scale-105"
                 />

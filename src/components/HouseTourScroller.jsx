@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { getAssetUrl } from '@/utils/assets';
 import {
   Play,
   Pause,
@@ -367,7 +368,7 @@ export default function HouseTourScroller() {
                 <div className="relative w-full h-full">
                   <img
                     key={currentStop.image}
-                    src={currentStop.image}
+                    src={getAssetUrl(currentStop.image)}
                     alt={currentStop.title}
                     className="w-full h-full object-cover object-center animate-in fade-in zoom-in-95 duration-500"
                   />
@@ -414,7 +415,7 @@ export default function HouseTourScroller() {
                   <video
                     ref={singleVideoRef}
                     key={currentStop.video}
-                    src={currentStop.video}
+                    src={getAssetUrl(currentStop.video)}
                     autoPlay
                     loop
                     muted={isMuted}
@@ -665,7 +666,7 @@ export default function HouseTourScroller() {
             <div className="relative bg-black aspect-[16/9] w-full flex items-center justify-center overflow-hidden">
               <video
                 ref={mergedVideoRef}
-                src="/tour/full-tour-merged.mp4"
+                src={getAssetUrl('/tour/full-tour-merged.mp4')}
                 autoPlay
                 playsInline
                 loop

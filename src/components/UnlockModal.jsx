@@ -16,6 +16,7 @@ import {
 import dataStore from '@/services/dataStore';
 import { useAuth } from '@/hooks/useAuth';
 import FizzyPaymentSuccess from '@/components/FizzyPaymentSuccess';
+import { getAssetUrl } from '@/utils/assets';
 
 export default function UnlockModal({ property, isOpen, onClose, onUnlocked }) {
   const { user } = useAuth();
@@ -59,7 +60,7 @@ export default function UnlockModal({ property, isOpen, onClose, onUnlocked }) {
           currency: 'INR',
           name: 'VEDIKA BROKERS',
           description: `Unlock exact address for ${property.title}`,
-          image: '/logo.svg',
+          image: getAssetUrl('/logo.svg'),
           handler: async function (response) {
             const payData = {
               method: 'razorpay',
@@ -137,7 +138,7 @@ export default function UnlockModal({ property, isOpen, onClose, onUnlocked }) {
           </button>
           
           <div className="flex items-center gap-2 text-amber-400 text-xs font-bold uppercase tracking-wider mb-1">
-            <img src="/logo-icon.png" alt="Vedika" className="w-4 h-4 object-contain" />
+            <img src={getAssetUrl('/logo-icon.png')} alt="Vedika" className="w-4 h-4 object-contain" />
             <span>Secure Address Unlock</span>
           </div>
           <h2 className="text-xl font-bold font-serif">{property.title}</h2>

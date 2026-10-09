@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { getAssetUrl } from '@/utils/assets';
 import {
   ChevronDown,
   Sparkles,
@@ -82,8 +83,8 @@ export default function TourScene({
         {video ? (
           <video
             ref={videoRef}
-            src={video}
-            poster={media}
+            src={getAssetUrl(video)}
+            poster={getAssetUrl(media)}
             autoPlay
             loop
             muted={isGlobalMuted}
@@ -95,7 +96,7 @@ export default function TourScene({
           />
         ) : (
           <img
-            src={media}
+            src={getAssetUrl(media)}
             alt={title}
             loading={index < 2 ? 'eager' : 'lazy'}
             onLoad={() => setIsLoaded(true)}
