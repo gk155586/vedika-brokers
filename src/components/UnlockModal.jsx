@@ -1,5 +1,6 @@
 // src/components/UnlockModal.jsx
 import React, { useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import confetti from 'canvas-confetti';
 import { 
   X, 
@@ -20,12 +21,25 @@ import { getAssetUrl } from '@/utils/assets';
 
 export default function UnlockModal({ property, isOpen, onClose, onUnlocked }) {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState('razorpay'); // 'razorpay' or 'bank'
   const [loading, setLoading] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(true);
   const [paymentSuccessData, setPaymentSuccessData] = useState(null);
 
   React.useEffect(() => {
+    if (isOpen && (!user || !user.id || user.id === 'guest')) {
+      onClose();
+      navigate('/login', {
+        state: {
+          from: location.pathname + location.search,
+          message: 'Please sign in or create an account to unlock property coordinates.'
+        }
+      });
+      return;
+    }
+
     if (!isOpen) {
       setPaymentSuccessData(null);
       setLoading(false);
@@ -36,7 +50,7 @@ export default function UnlockModal({ property, isOpen, onClose, onUnlocked }) {
         document.body.style.overflow = prevOverflow;
       };
     }
-  }, [isOpen]);
+  }, [isOpen, user, navigate, location.pathname, location.search, onClose]);
 
   if (!isOpen || !property) return null;
 
@@ -49,6 +63,18 @@ export default function UnlockModal({ property, isOpen, onClose, onUnlocked }) {
   };
 
   const handleRazorpayPayment = async () => {
+    if (!user || !user.id || user.id === 'guest') {
+      alert('Please sign in or create an account to unlock property coordinates.');
+      onClose();
+      navigate('/login', {
+        state: {
+          from: location.pathname + location.search,
+          message: 'Please sign in or create an account to unlock property coordinates.'
+        }
+      });
+      return;
+    }
+
     if (!agreeTerms) {
       alert('Please agree to the service and refund terms to proceed.');
       return;
@@ -73,7 +99,7 @@ export default function UnlockModal({ property, isOpen, onClose, onUnlocked }) {
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_order_id: response.razorpay_order_id,
             };
-            await dataStore.unlockAddress(user?.id || 'guest', property.id, payData);
+            await dataStore.unlockAddress(user.id, property.id, payData);
             triggerCelebration();
             if (onUnlocked) onUnlocked();
             setPaymentSuccessData(payData);
@@ -97,7 +123,7 @@ export default function UnlockModal({ property, isOpen, onClose, onUnlocked }) {
             method: 'razorpay_demo',
             razorpay_payment_id: `PAY_DEMO_${Date.now().toString(36).toUpperCase()}`,
           };
-          await dataStore.unlockAddress(user?.id || 'guest', property.id, payData);
+          await dataStore.unlockAddress(user.id, property.id, payData);
           triggerCelebration();
           if (onUnlocked) onUnlocked();
           setPaymentSuccessData(payData);

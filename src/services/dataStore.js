@@ -5,6 +5,9 @@
 
 import { supabase } from './supabase';
 import { verifyAdminSessionToken } from './authSecurity';
+import { isMockUser, isMockEnquiry, purgeAllMockData } from '../utils/mockDataFilters';
+
+export { isMockUser, isMockEnquiry, purgeAllMockData };
 
 export const INITIAL_CITIES = [
   {
@@ -484,169 +487,12 @@ export const INITIAL_QR_CAMPAIGNS = [
   { id: 'qr-005', code: 'QR005', name: 'Office Reception Standee', location: 'Vedika Nanded Office', scans_count: 112, active: true, created_at: '2026-09-10' },
 ];
 
-export const INITIAL_ENQUIRIES = [
-  {
-    id: 'enq-179001',
-    name: 'Rajesh Kulkarni',
-    email: 'rajesh.kulkarni@gmail.com',
-    phone: '+91 98220 14820',
-    source: 'Contact Page',
-    type: 'Buy Requirement',
-    property_id: null,
-    property_code: null,
-    property_title: null,
-    message: 'Looking for a 2 BHK apartment near Zenda Chowk or Vazirabad for my family. Budget around ₹35-40 Lakhs. Need possession within 2 months.',
-    status: 'in_progress',
-    priority: 'high',
-    created_at: '2026-09-25T10:30:00Z',
-    updated_at: '2026-09-26T11:00:00Z',
-    admin_notes: [
-      { id: 'note-1', note: 'Client prefers 2nd floor or above with lift and dedicated car parking. Spoke on phone.', by: 'Swapnil Navghare', date: '2026-09-25T14:15:00Z' },
-      { id: 'note-2', note: 'Shortlisted Anand Heights and Shiv Krupa. Site visit planned for Saturday.', by: 'Swapnil Navghare', date: '2026-09-26T11:00:00Z' }
-    ],
-    history: [
-      { date: '2026-09-25T10:30:00Z', action: 'Enquiry Received', by: 'Customer (Online)', details: 'Enquiry submitted via Contact Form' },
-      { date: '2026-09-25T14:15:00Z', action: 'Status Changed to Contacted', by: 'Swapnil Navghare', details: 'Client called on phone. Interested in 2 BHK near Zenda Chowk.' },
-      { date: '2026-09-26T11:00:00Z', action: 'Status Changed to In Progress', by: 'Swapnil Navghare', details: 'Site inspection scheduled for Saturday.' }
-    ]
-  },
-  {
-    id: 'enq-179002',
-    name: 'Pooja Deshmukh',
-    email: 'pooja.deshmukh@yahoo.co.in',
-    phone: '+91 94231 87654',
-    source: 'Property Page',
-    type: 'Property Enquiry',
-    property_id: 'prop-buy-002',
-    property_code: 'VB-BUY-002',
-    property_title: 'Greenfield Park Residency 3BHK',
-    message: 'Interested in 3 BHK luxury flat at Taroda Naka (VB-BUY-002). Is home loan assistance available through SBI or HDFC? Also what is the monthly society maintenance fee?',
-    status: 'new',
-    priority: 'high',
-    created_at: '2026-09-28T16:45:00Z',
-    updated_at: '2026-09-28T16:45:00Z',
-    admin_notes: [],
-    history: [
-      { date: '2026-09-28T16:45:00Z', action: 'Enquiry Received', by: 'Customer (Online)', details: 'Enquiry received for property VB-BUY-002 (Greenfield Park Residency)' }
-    ]
-  },
-  {
-    id: 'enq-179003',
-    name: 'Dr. Amit Shinde',
-    email: 'dr.amit.shinde@nandedclinic.com',
-    phone: '+91 97654 32109',
-    source: 'Direct Broker Desk',
-    type: 'Rent Requirement',
-    property_id: null,
-    property_code: null,
-    property_title: null,
-    message: 'Need a fully furnished 2 BHK on rent near Shivaji Nagar / Govt Hospital. Budget up to ₹18,000/month. Family of 3, immediate move-in required.',
-    status: 'contacted',
-    priority: 'normal',
-    created_at: '2026-09-27T09:15:00Z',
-    updated_at: '2026-09-27T10:00:00Z',
-    admin_notes: [
-      { id: 'note-3', note: 'Sent 3 WhatsApp listings. Client liked Sai Krupa Heights in Shivaji Nagar.', by: 'Swapnil Navghare', date: '2026-09-27T10:00:00Z' }
-    ],
-    history: [
-      { date: '2026-09-27T09:15:00Z', action: 'Enquiry Received', by: 'Customer (Online)', details: 'Direct Broker Desk enquiry received' },
-      { date: '2026-09-27T10:00:00Z', action: 'Status Changed to Contacted', by: 'Swapnil Navghare', details: 'WhatsApp options sent to doctor' }
-    ]
-  },
-  {
-    id: 'enq-179004',
-    name: 'Sanjay Patil',
-    email: 'sanjay.patil.nnd@gmail.com',
-    phone: '+91 91580 98765',
-    source: 'Contact Page',
-    type: 'Sell Property Listing',
-    property_id: null,
-    property_code: null,
-    property_title: null,
-    message: 'I want to list my 2 BHK flat for sale in Chhatrapati Chowk, commercial road touch. Please call back to discuss brokerage terms and physical inspection.',
-    status: 'resolved',
-    priority: 'normal',
-    created_at: '2026-09-22T11:20:00Z',
-    updated_at: '2026-09-24T18:00:00Z',
-    admin_notes: [
-      { id: 'note-4', note: 'Owner agreed to 1.5% brokerage on closing. High demand location.', by: 'Swapnil Navghare', date: '2026-09-23T14:00:00Z' },
-      { id: 'note-5', note: 'Verified registry documents and uploaded to catalog as VB-BUY-004.', by: 'Admin Desk', date: '2026-09-24T18:00:00Z' }
-    ],
-    history: [
-      { date: '2026-09-22T11:20:00Z', action: 'Enquiry Received', by: 'Customer (Online)', details: 'Property listing enquiry received' },
-      { date: '2026-09-23T14:00:00Z', action: 'Status Changed to In Progress', by: 'Swapnil Navghare', details: 'In-person inspection of flat completed' },
-      { date: '2026-09-24T18:00:00Z', action: 'Status Changed to Resolved', by: 'Admin Desk', details: 'Property listed in catalog under ID VB-BUY-004' }
-    ]
-  }
-];
+export const INITIAL_ENQUIRIES = [];
 
-export const INITIAL_REGISTERED_USERS = [
-  {
-    id: 'user-101',
-    name: 'Rajesh Kulkarni',
-    email: 'rajesh.kulkarni@gmail.com',
-    phone: '+91 98220 14820',
-    role: 'user',
-    createdAt: '2026-09-20T10:30:00Z',
-    status: 'verified'
-  },
-  {
-    id: 'user-102',
-    name: 'Pooja Deshmukh',
-    email: 'pooja.deshmukh@yahoo.co.in',
-    phone: '+91 94231 87654',
-    role: 'user',
-    createdAt: '2026-09-22T14:15:00Z',
-    status: 'verified'
-  },
-  {
-    id: 'user-103',
-    name: 'Dr. Amit Shinde',
-    email: 'dr.amit.shinde@nandedclinic.com',
-    phone: '+91 97654 32109',
-    role: 'user',
-    createdAt: '2026-09-23T09:00:00Z',
-    status: 'verified'
-  },
-  {
-    id: 'user-104',
-    name: 'Sanjay Patil',
-    email: 'sanjay.patil.nnd@gmail.com',
-    phone: '+91 91580 98765',
-    role: 'user',
-    createdAt: '2026-09-24T16:20:00Z',
-    status: 'verified'
-  },
-  {
-    id: 'user-105',
-    name: 'Sneha Joshi',
-    email: 'sneha.joshi.pune@gmail.com',
-    phone: '+91 99225 43210',
-    role: 'user',
-    createdAt: '2026-09-26T11:45:00Z',
-    status: 'verified'
-  },
-  {
-    id: 'user-106',
-    name: 'Vikram More',
-    email: 'vikram.more.nnd@gmail.com',
-    phone: '+91 98901 23456',
-    role: 'user',
-    createdAt: '2026-09-27T18:10:00Z',
-    status: 'verified'
-  }
-];
+export const INITIAL_REGISTERED_USERS = [];
 
-export const INITIAL_FAVORITES = [
-  { user_id: 'user-101', property_id: 'prop-buy-001', created_at: '2026-09-21T11:00:00Z' },
-  { user_id: 'user-101', property_id: 'prop-rent-001', created_at: '2026-09-22T09:30:00Z' },
-  { user_id: 'user-102', property_id: 'prop-buy-002', created_at: '2026-09-23T15:00:00Z' },
-  { user_id: 'user-102', property_id: 'prop-buy-004', created_at: '2026-09-24T18:45:00Z' },
-  { user_id: 'user-103', property_id: 'prop-rent-002', created_at: '2026-09-25T14:20:00Z' },
-  { user_id: 'user-104', property_id: 'prop-buy-003', created_at: '2026-09-26T10:15:00Z' },
-  { user_id: 'user-105', property_id: 'prop-rent-003', created_at: '2026-09-27T12:00:00Z' },
-  { user_id: 'user-105', property_id: 'prop-buy-001', created_at: '2026-09-27T16:30:00Z' }
-];
+export const INITIAL_FAVORITES = [];
+
 
 export class DataStore {
   constructor() {
@@ -800,81 +646,54 @@ export class DataStore {
       localStorage.setItem('vb_qr_campaigns', JSON.stringify(INITIAL_QR_CAMPAIGNS));
     }
 
-    if (!localStorage.getItem('vb_unlocks')) {
+    // Address Unlocks: Strictly real user transactions; purge guest or mock records
+    try {
+      const rawUnlocks = localStorage.getItem('vb_unlocks');
+      if (rawUnlocks !== null) {
+        const storedUnlocks = JSON.parse(rawUnlocks);
+        if (Array.isArray(storedUnlocks)) {
+          const cleaned = storedUnlocks.filter(
+            (u) => u && u.user_id && u.user_id !== 'guest' && !String(u.user_id).startsWith('mock-')
+          );
+          localStorage.setItem('vb_unlocks', JSON.stringify(cleaned));
+        } else {
+          localStorage.setItem('vb_unlocks', JSON.stringify([]));
+        }
+      } else {
+        localStorage.setItem('vb_unlocks', JSON.stringify([]));
+      }
+    } catch (_) {
       localStorage.setItem('vb_unlocks', JSON.stringify([]));
     }
-    if (!localStorage.getItem('vb_payments')) {
+
+    // Payments: Clean out any guest payments
+    try {
+      const rawPayments = localStorage.getItem('vb_payments');
+      if (rawPayments !== null) {
+        const storedPayments = JSON.parse(rawPayments);
+        if (Array.isArray(storedPayments)) {
+          const cleaned = storedPayments.filter(
+            (p) => p && p.user_id && p.user_id !== 'guest' && !String(p.user_id).startsWith('mock-')
+          );
+          localStorage.setItem('vb_payments', JSON.stringify(cleaned));
+        } else {
+          localStorage.setItem('vb_payments', JSON.stringify([]));
+        }
+      } else {
+        localStorage.setItem('vb_payments', JSON.stringify([]));
+      }
+    } catch (_) {
       localStorage.setItem('vb_payments', JSON.stringify([]));
     }
+
     if (!localStorage.getItem('vb_refunds')) {
       localStorage.setItem('vb_refunds', JSON.stringify([]));
     }
     if (!localStorage.getItem('vb_visits')) {
       localStorage.setItem('vb_visits', JSON.stringify([]));
     }
-    try {
-      const storedFavs = JSON.parse(localStorage.getItem('vb_favorites') || '[]');
-      if (!Array.isArray(storedFavs) || storedFavs.length === 0) {
-        localStorage.setItem('vb_favorites', JSON.stringify(INITIAL_FAVORITES));
-      }
-    } catch (_) {
-      localStorage.setItem('vb_favorites', JSON.stringify(INITIAL_FAVORITES));
-    }
-
-    try {
-      const rawUsers = localStorage.getItem('vb_registered_users');
-      if (rawUsers === null) {
-        const backupUsers = localStorage.getItem('vb_registered_users_backup');
-        if (backupUsers !== null) {
-          localStorage.setItem('vb_registered_users', backupUsers);
-        } else {
-          localStorage.setItem('vb_registered_users', JSON.stringify(INITIAL_REGISTERED_USERS));
-          localStorage.setItem('vb_registered_users_backup', JSON.stringify(INITIAL_REGISTERED_USERS));
-        }
-      } else {
-        localStorage.setItem('vb_registered_users_backup', rawUsers);
-      }
-    } catch (_) {
-      // Defensive: Never overwrite user storage on exception
-    }
-
-    // Initialize Enquiries & Leads with complete historical records (Zero Data Loss)
-    try {
-      const rawEnquiries = localStorage.getItem('vb_enquiries');
-      if (rawEnquiries === null) {
-        localStorage.setItem('vb_enquiries', JSON.stringify(INITIAL_ENQUIRIES));
-      } else {
-        const storedEnquiries = JSON.parse(rawEnquiries);
-        if (Array.isArray(storedEnquiries)) {
-          let needsUpdate = false;
-          const upgraded = storedEnquiries.map(enq => {
-            let modified = false;
-            const copy = { ...enq };
-            if (!Array.isArray(copy.history)) {
-              copy.history = [
-                { date: copy.created_at || new Date().toISOString(), action: 'Enquiry Received', by: 'Customer (Online)', details: 'Initial enquiry submission' }
-              ];
-              modified = true;
-            }
-            if (!Array.isArray(copy.admin_notes)) {
-              copy.admin_notes = [];
-              modified = true;
-            }
-            if (!copy.status) {
-              copy.status = 'new';
-              modified = true;
-            }
-            if (modified) needsUpdate = true;
-            return copy;
-          });
-          if (needsUpdate) {
-            localStorage.setItem('vb_enquiries', JSON.stringify(upgraded));
-          }
-        }
-      }
-    } catch (_) {
-      localStorage.setItem('vb_enquiries', JSON.stringify(INITIAL_ENQUIRIES));
-    }
+    // Zero Mock Data Policy: Purge any lingering dummy users, default enquiries, or test records
+    purgeAllMockData();
 
     if (!localStorage.getItem('vb_logs')) {
       localStorage.setItem('vb_logs', JSON.stringify([
@@ -1349,12 +1168,18 @@ export class DataStore {
 
   // --- UNLOCK & PAYMENT ---
   async isPropertyUnlocked(userId, propertyId) {
-    if (!userId) return false;
+    if (!userId || userId === 'guest' || typeof userId !== 'string' || !propertyId) {
+      return false;
+    }
     const unlocks = JSON.parse(localStorage.getItem('vb_unlocks') || '[]');
-    return unlocks.some((u) => u.user_id === userId && u.property_id === propertyId);
+    return unlocks.some((u) => u && u.user_id === userId && u.property_id === propertyId);
   }
 
   async unlockAddress(userId, propertyId, paymentDetails = {}) {
+    if (!userId || userId === 'guest' || typeof userId !== 'string' || !userId.trim()) {
+      throw new Error("You must be signed in with a genuine account to unlock a property address.");
+    }
+
     const unlocks = JSON.parse(localStorage.getItem('vb_unlocks') || '[]');
     const payments = JSON.parse(localStorage.getItem('vb_payments') || '[]');
     const settings = this.getSettings();
@@ -1374,7 +1199,7 @@ export class DataStore {
     payments.unshift(newPayment);
     localStorage.setItem('vb_payments', JSON.stringify(payments));
 
-    if (!unlocks.some((u) => u.user_id === userId && u.property_id === propertyId)) {
+    if (!unlocks.some((u) => u && u.user_id === userId && u.property_id === propertyId)) {
       unlocks.unshift({
         id: `unlock-${Date.now()}`,
         user_id: userId,
@@ -1399,10 +1224,11 @@ export class DataStore {
   }
 
   async getUserUnlocks(userId) {
+    if (!userId || userId === 'guest') return [];
     const unlocks = JSON.parse(localStorage.getItem('vb_unlocks') || '[]');
     const properties = await this.getProperties();
     return unlocks
-      .filter((u) => u.user_id === userId)
+      .filter((u) => u && u.user_id === userId)
       .map((u) => {
         const prop = properties.find((p) => p.id === u.property_id);
         return { ...u, property: prop };
@@ -1501,6 +1327,7 @@ export class DataStore {
         transaction_id: r.transaction_id || pay?.razorpay_payment_id || unl?.payment_id || 'N/A',
       };
     });
+    if (userId === 'guest') return [];
     return userId ? enhanced.filter((r) => r.user_id === userId) : enhanced;
   }
 
@@ -1576,6 +1403,7 @@ export class DataStore {
       ...v,
       property: properties.find((p) => p.id === v.property_id),
     }));
+    if (userId === 'guest') return [];
     return userId ? enhanced.filter((v) => v.user_id === userId) : enhanced;
   }
 
@@ -1791,9 +1619,9 @@ export class DataStore {
         registered = JSON.parse(raw);
         if (!Array.isArray(registered)) registered = [];
       } else {
-        registered = [...INITIAL_REGISTERED_USERS];
-        localStorage.setItem('vb_registered_users', JSON.stringify(registered));
-        localStorage.setItem('vb_registered_users_backup', JSON.stringify(registered));
+        registered = [];
+        localStorage.setItem('vb_registered_users', JSON.stringify([]));
+        localStorage.setItem('vb_registered_users_backup', JSON.stringify([]));
       }
     } catch (_) {
       try {
@@ -1806,6 +1634,13 @@ export class DataStore {
         registered = [];
       }
     }
+
+    // Defensive check: filter out any mock testing users and sync cleaned store
+    registered = registered.filter((u) => !isMockUser(u));
+    try {
+      localStorage.setItem('vb_registered_users', JSON.stringify(registered));
+      localStorage.setItem('vb_registered_users_backup', JSON.stringify(registered));
+    } catch (_) {}
 
     const properties = await this.getProperties();
     const allFavorites = JSON.parse(localStorage.getItem('vb_favorites') || '[]');
@@ -1879,7 +1714,7 @@ export class DataStore {
     let registered = [];
     try {
       const raw = localStorage.getItem('vb_registered_users');
-      registered = raw !== null ? JSON.parse(raw) : [...INITIAL_REGISTERED_USERS];
+      registered = raw !== null ? JSON.parse(raw) : [];
       if (!Array.isArray(registered)) registered = [];
     } catch (_) {
       registered = [];
@@ -1893,8 +1728,9 @@ export class DataStore {
       (!targetEmail || !u.email || u.email.toLowerCase() !== targetEmail)
     );
     
-    // Save updated users list (even if empty)
+    // Save updated users list to both primary and backup stores (even if empty)
     localStorage.setItem('vb_registered_users', JSON.stringify(updated));
+    localStorage.setItem('vb_registered_users_backup', JSON.stringify(updated));
 
     // Remove from active sessions if present
     try {
@@ -1921,7 +1757,7 @@ export class DataStore {
     let registered = [];
     try {
       const raw = localStorage.getItem('vb_registered_users');
-      registered = raw !== null ? JSON.parse(raw) : [...INITIAL_REGISTERED_USERS];
+      registered = raw !== null ? JSON.parse(raw) : [];
       if (!Array.isArray(registered)) registered = [];
     } catch (_) {
       registered = [];
@@ -1947,6 +1783,7 @@ export class DataStore {
     });
 
     localStorage.setItem('vb_registered_users', JSON.stringify(updated));
+    localStorage.setItem('vb_registered_users_backup', JSON.stringify(updated));
 
     // If suspended, evict active sessions immediately
     if (target && target.isSuspended) {
@@ -2052,6 +1889,13 @@ export class DataStore {
     localStorage.setItem('vb_enquiries', JSON.stringify(enquiries));
 
     this.logAction(`New enquiry received from ${newEnquiry.name || 'Visitor'} (${newEnquiry.phone || 'No phone'})`, 'Enquiry', newEnquiry.id);
+    
+    // Broadcast for immediate real-time sync across tabs and windows
+    if (typeof window !== 'undefined') {
+      try {
+        window.dispatchEvent(new CustomEvent('vb-enquiries-updated', { detail: newEnquiry }));
+      } catch (_) {}
+    }
     this.notify();
     return newEnquiry;
   }
@@ -2062,7 +1906,11 @@ export class DataStore {
       if (raw !== null) {
         const stored = JSON.parse(raw);
         if (Array.isArray(stored)) {
-          return stored.map(e => ({
+          const cleaned = stored.filter(e => !isMockEnquiry(e));
+          try {
+            localStorage.setItem('vb_enquiries', JSON.stringify(cleaned));
+          } catch (_) {}
+          return cleaned.map(e => ({
             ...e,
             history: Array.isArray(e.history) ? e.history : [],
             admin_notes: Array.isArray(e.admin_notes) ? e.admin_notes : []
@@ -2070,8 +1918,7 @@ export class DataStore {
         }
       }
     } catch (_) {}
-    localStorage.setItem('vb_enquiries', JSON.stringify(INITIAL_ENQUIRIES));
-    return INITIAL_ENQUIRIES.map(e => ({ ...e }));
+    return [];
   }
 
   async updateEnquiryStatus(enquiryId, newStatus, noteText = '', adminName = 'Vedika Broker Admin') {
@@ -2175,7 +2022,7 @@ export class DataStore {
     const raw = localStorage.getItem('vb_enquiries');
     let enquiries = [];
     try {
-      enquiries = raw !== null ? JSON.parse(raw) : INITIAL_ENQUIRIES;
+      enquiries = raw !== null ? JSON.parse(raw) : [];
       if (!Array.isArray(enquiries)) enquiries = [];
     } catch (_) {
       enquiries = [];

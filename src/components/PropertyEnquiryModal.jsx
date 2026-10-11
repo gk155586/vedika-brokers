@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { X, MessageSquare, Phone, Mail, User, Send, CheckCircle2, ShieldCheck } from 'lucide-react';
 import dataStore from '@/services/dataStore';
 import { useAuth } from '@/hooks/useAuth';
+import { generateBrokerWhatsAppUrl } from '@/utils/whatsapp';
 
 export default function PropertyEnquiryModal({ property, isOpen, onClose, onEnquirySent }) {
   const { user } = useAuth();
@@ -45,11 +46,14 @@ export default function PropertyEnquiryModal({ property, isOpen, onClose, onEnqu
         property_title: property.title
       });
       setSubmitted(true);
+      onEnquirySent && onEnquirySent();
+      // Auto close after 8 seconds if user doesn't click WhatsApp or close manually
       setTimeout(() => {
-        setSubmitted(false);
-        onEnquirySent && onEnquirySent();
-        onClose();
-      }, 1800);
+        if (isOpen) {
+          setSubmitted(false);
+          onClose();
+        }
+      }, 8000);
     } catch (err) {
       console.error('Failed to submit property enquiry:', err);
       alert('Could not submit enquiry. Please try again or WhatsApp directly.');
@@ -81,12 +85,44 @@ export default function PropertyEnquiryModal({ property, isOpen, onClose, onEnqu
         </div>
 
         {submitted ? (
-          <div className="p-8 text-center space-y-3">
-            <CheckCircle2 className="w-16 h-16 text-emerald-500 mx-auto animate-bounce" />
-            <h3 className="text-lg font-bold text-slate-900 font-serif">Enquiry Registered!</h3>
-            <p className="text-xs text-slate-600 max-w-xs mx-auto">
-              Your inquiry has been sent directly to Swapnil Navghare. Our broker desk will connect with you via call / WhatsApp shortly.
-            </p>
+          <div className="p-6 sm:p-8 text-center space-y-4">
+            <CheckCircle2 className="w-14 h-14 text-emerald-500 mx-auto animate-bounce" />
+            <div className="space-y-1">
+              <h3 className="text-lg font-bold text-slate-900 font-serif">Enquiry Registered!</h3>
+              <p className="text-xs text-slate-600 max-w-xs mx-auto">
+                Your enquiry has been received at our Nanded operations desk. Swapnil Navghare will review your requirement and connect shortly.
+              </p>
+            </div>
+
+            <div className="pt-2 flex flex-col gap-2">
+              <a
+                href={generateBrokerWhatsAppUrl({
+                  name,
+                  phone,
+                  message,
+                  propertyTitle: property.title,
+                  propertyCode: property.property_code,
+                  source: 'Property Details Page'
+                })}
+                target="_blank"
+                rel="noreferrer"
+                className="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-98 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md transition"
+              >
+                <MessageSquare className="w-4 h-4" />
+                <span>Instant Connect on WhatsApp Now</span>
+              </a>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setSubmitted(false);
+                  onClose();
+                }}
+                className="w-full py-2 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition cursor-pointer"
+              >
+                Close Window
+              </button>
+            </div>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-3.5 overflow-y-auto flex-1 scrollbar-thin touch-pan-y">

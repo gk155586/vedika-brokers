@@ -11,10 +11,12 @@ import {
   Lock, 
   Heart, 
   Scale, 
-  ShieldCheck 
+  ShieldCheck,
+  Share2
 } from 'lucide-react';
 import dataStore from '@/services/dataStore';
 import { useAuth } from '@/hooks/useAuth';
+import { shareProperty } from '@/utils/whatsapp';
 
 export default function PropertyCard({ property }) {
   const navigate = useNavigate();
@@ -106,6 +108,11 @@ export default function PropertyCard({ property }) {
     } catch (_) {}
   };
 
+  const handleShare = async (e) => {
+    e.stopPropagation();
+    await shareProperty(property);
+  };
+
   return (
     <div 
       onClick={() => navigate(`/property/${property.id}`)}
@@ -141,12 +148,21 @@ export default function PropertyCard({ property }) {
           )}
         </div>
 
-        {/* Action icons (Heart & Compare) */}
+        {/* Action icons (Share, Heart & Compare) */}
         <div className="absolute top-3 right-3 flex items-center gap-1.5">
           <button
+            type="button"
+            onClick={handleShare}
+            title="Share property listing on WhatsApp"
+            className="w-8 h-8 rounded-full bg-white/90 hover:bg-white text-emerald-700 hover:text-emerald-800 flex items-center justify-center shadow backdrop-blur-sm transition-all hover:scale-110 cursor-pointer"
+          >
+            <Share2 className="w-3.5 h-3.5 stroke-[2.2]" />
+          </button>
+          <button
+            type="button"
             onClick={handleCompare}
             title={isCompared ? 'Selected for compare (Click to remove)' : 'Add to compare'}
-            className={`w-8 h-8 rounded-full flex items-center justify-center shadow backdrop-blur-sm transition-all hover:scale-110 ${
+            className={`w-8 h-8 rounded-full flex items-center justify-center shadow backdrop-blur-sm transition-all hover:scale-110 cursor-pointer ${
               isCompared
                 ? 'bg-amber-400 text-slate-950 ring-2 ring-amber-300 font-bold shadow-md'
                 : 'bg-white/90 hover:bg-white text-slate-700'
@@ -155,9 +171,10 @@ export default function PropertyCard({ property }) {
             <Scale className={`w-4 h-4 ${isCompared ? 'stroke-[2.5]' : 'stroke-2'}`} />
           </button>
           <button
+            type="button"
             onClick={handleFavoriteToggle}
             title="Save to favorites"
-            className={`w-8 h-8 rounded-full bg-white/90 hover:bg-white flex items-center justify-center shadow backdrop-blur-sm transition hover:scale-110 ${
+            className={`w-8 h-8 rounded-full bg-white/90 hover:bg-white flex items-center justify-center shadow backdrop-blur-sm transition hover:scale-110 cursor-pointer ${
               isFav ? 'text-rose-600 fill-rose-600' : 'text-slate-700'
             }`}
           >

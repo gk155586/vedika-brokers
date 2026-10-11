@@ -192,128 +192,111 @@ export default function Navbar() {
 
           {/* Right Controls: User Account Menu & Mobile Menu Toggle */}
           <div className="flex items-center space-x-1.5 sm:space-x-3">
-            <div className="relative" ref={userMenuRef}>
-              <button
-                type="button"
-                onClick={() => {
-                  setUserDropdownOpen(!userDropdownOpen);
-                  setMobileMenuOpen(false);
-                }}
-                className="relative group flex items-center gap-1.5 sm:gap-2 px-2 sm:px-2.5 py-1.5 rounded-full transition-all duration-200 focus:outline-none bg-transparent hover:text-amber-300"
-                title={user ? `Signed in as ${user.name || user.email}` : "User Account (Login / Register)"}
-                aria-label="User Account"
-              >
-                <div className="w-8 h-8 rounded-full bg-amber-400/20 flex items-center justify-center text-amber-200 font-bold overflow-hidden transition-transform group-hover:scale-105">
-                  {user ? (
-                    <span className="text-xs text-amber-300 font-black">
-                      {(user.name || user.email || 'U').charAt(0).toUpperCase()}
-                    </span>
-                  ) : (
-                    <User className="w-4 h-4 text-amber-300" />
-                  )}
-                </div>
-                <span className="text-xs font-bold text-white hidden sm:block drop-shadow-[0_1px_4px_rgba(0,0,0,0.85)]">
-                  {user ? (user.name ? user.name.split(' ')[0] : 'Account') : 'Sign In'}
-                </span>
-                <ChevronDown className={`w-3.5 h-3.5 text-white/70 transition-transform duration-200 ${
-                  userDropdownOpen ? 'rotate-180 text-amber-300' : 'group-hover:translate-y-0.5'
-                }`} />
-              </button>
+            {!user ? (
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <Link
+                  to="/login"
+                  onClick={() => {
+                    setUserDropdownOpen(false);
+                    setMobileMenuOpen(false);
+                  }}
+                  className="flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full bg-amber-400 hover:bg-amber-300 active:bg-amber-500 text-slate-950 font-black text-xs sm:text-sm shadow-md shadow-amber-400/20 hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer"
+                  title="Sign In to your Vedika Account"
+                >
+                  <LogIn className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-950 stroke-[2.5]" />
+                  <span>Sign In</span>
+                </Link>
+                <Link
+                  to="/register"
+                  onClick={() => {
+                    setUserDropdownOpen(false);
+                    setMobileMenuOpen(false);
+                  }}
+                  className="hidden sm:flex items-center gap-1.5 px-3.5 py-1.5 sm:py-2 rounded-full bg-white/10 hover:bg-white/20 text-white font-bold text-xs sm:text-sm border border-white/20 hover:border-white/40 transition-all duration-200 backdrop-blur-xs cursor-pointer"
+                  title="Create a New Genuine Account"
+                >
+                  <UserPlus className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-300" />
+                  <span>Register</span>
+                </Link>
+              </div>
+            ) : (
+              <div className="relative" ref={userMenuRef}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setUserDropdownOpen(!userDropdownOpen);
+                    setMobileMenuOpen(false);
+                  }}
+                  className="relative group flex items-center gap-1.5 sm:gap-2 px-2 sm:px-2.5 py-1.5 rounded-full transition-all duration-200 focus:outline-none bg-white/10 hover:bg-white/20 border border-white/15"
+                  title={`Signed in as ${user.name || user.email}`}
+                  aria-label="User Account Menu"
+                >
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center font-black text-xs overflow-hidden transition-transform group-hover:scale-105">
+                    {(user.name || user.email || 'U').charAt(0).toUpperCase()}
+                  </div>
+                  <span className="text-xs font-bold text-white hidden sm:block max-w-[100px] truncate drop-shadow-[0_1px_4px_rgba(0,0,0,0.85)]">
+                    {user.name ? user.name.split(' ')[0] : 'Account'}
+                  </span>
+                  <ChevronDown
+                    className={`w-3.5 h-3.5 text-white/70 transition-transform duration-200 ${
+                      userDropdownOpen ? 'rotate-180 text-amber-300' : 'group-hover:translate-y-0.5'
+                    }`}
+                  />
+                </button>
 
-              {/* Mobile Backdrop Overlay (Closes dropdown when tapping anywhere on phone screen) */}
-              {userDropdownOpen && (
-                <div
-                  className="fixed inset-0 bg-black/50 backdrop-blur-xs z-40 sm:hidden"
-                  onClick={() => setUserDropdownOpen(false)}
-                />
-              )}
+                {/* Mobile Backdrop Overlay */}
+                {userDropdownOpen && (
+                  <div
+                    className="fixed inset-0 bg-black/50 backdrop-blur-xs z-40 sm:hidden"
+                    onClick={() => setUserDropdownOpen(false)}
+                  />
+                )}
 
-              {/* Dropdown Menu Housing Login & Register Pages */}
-              {userDropdownOpen && (
-                <div className="fixed left-3 right-3 top-16 max-w-sm mx-auto sm:left-auto sm:right-0 sm:top-full sm:mt-3 sm:w-72 sm:max-w-none bg-slate-900/95 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/10 py-2 z-50 animate-in fade-in zoom-in-95 duration-200 overflow-hidden text-white">
-                  {user ? (
-                    <div>
-                      <div className="px-4 py-3 bg-white/5 border-b border-white/10">
-                        <div className="text-[10px] font-bold uppercase tracking-wider text-amber-400">Signed In As</div>
-                        <div className="text-sm font-black text-white truncate">{user.name || 'User'}</div>
-                        <div className="text-xs text-slate-300 truncate font-mono">{user.email || user.phone}</div>
-                      </div>
-
-                      <div className="p-2 space-y-1 text-xs font-semibold">
-                        <Link
-                          to="/account"
-                          onClick={() => setUserDropdownOpen(false)}
-                          className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/10 text-slate-200 hover:text-white transition group"
-                        >
-                          <div className="w-7 h-7 rounded-lg bg-amber-400/20 text-amber-300 flex items-center justify-center shrink-0 border border-amber-400/30 group-hover:scale-105 transition-transform">
-                            <User className="w-4 h-4" />
-                          </div>
-                          <div>
-                            <div className="font-bold text-white">My Account</div>
-                            <div className="text-[10px] text-slate-400 font-normal">Profile, saved properties & visits</div>
-                          </div>
-                        </Link>
-
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setUserDropdownOpen(false);
-                            handleSignOut();
-                          }}
-                          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-red-500/20 text-red-400 hover:text-red-300 transition text-left group"
-                        >
-                          <div className="w-7 h-7 rounded-lg bg-red-500/20 text-red-400 flex items-center justify-center shrink-0 border border-red-500/30 group-hover:scale-105 transition-transform">
-                            <LogOut className="w-4 h-4" />
-                          </div>
-                          <div>
-                            <div className="font-bold text-red-400">Sign Out</div>
-                            <div className="text-[10px] text-red-400/80 font-normal">End your current session</div>
-                          </div>
-                        </button>
-                      </div>
+                {/* Dropdown Menu for Authenticated User */}
+                {userDropdownOpen && (
+                  <div className="absolute right-0 top-full mt-2 w-64 bg-slate-900/95 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/10 py-2 z-50 animate-in fade-in zoom-in-95 duration-150 overflow-hidden text-white">
+                    <div className="px-4 py-3 bg-white/5 border-b border-white/10">
+                      <div className="text-[10px] font-bold uppercase tracking-wider text-amber-400">Signed In As</div>
+                      <div className="text-sm font-black text-white truncate">{user.name || 'User'}</div>
+                      <div className="text-xs text-slate-300 truncate font-mono">{user.email || user.phone}</div>
                     </div>
-                  ) : (
-                    <div>
-                      <div className="px-4 py-3 bg-white/5 border-b border-white/10">
-                        <div className="text-[10px] font-bold uppercase tracking-wider text-amber-400">Vedika Account</div>
-                        <div className="text-sm font-black text-white">Sign In or Register</div>
-                        <div className="text-[11px] text-slate-300">Access verified listings & direct unlock desk</div>
-                      </div>
 
-                      <div className="p-2 space-y-1.5 text-xs">
-                        <Link
-                          to="/login"
-                          onClick={() => setUserDropdownOpen(false)}
-                          className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/5 hover:bg-white/15 text-white transition font-bold border border-white/10 group"
-                        >
-                          <div className="w-8 h-8 rounded-xl bg-blue-600/40 border border-blue-400/30 text-white flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                            <LogIn className="w-4 h-4 text-amber-300" />
-                          </div>
-                          <div className="flex-1">
-                            <div className="font-extrabold text-white group-hover:text-amber-300 transition-colors">Login</div>
-                            <div className="text-[10px] text-slate-400 font-normal">Existing user account login</div>
-                          </div>
-                        </Link>
+                    <div className="p-2 space-y-1 text-xs font-semibold">
+                      <Link
+                        to="/account"
+                        onClick={() => setUserDropdownOpen(false)}
+                        className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/10 text-slate-200 hover:text-white transition group"
+                      >
+                        <div className="w-7 h-7 rounded-lg bg-amber-400/20 text-amber-300 flex items-center justify-center shrink-0 border border-amber-400/30 group-hover:scale-105 transition-transform">
+                          <User className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <div className="font-bold text-white">My Account</div>
+                          <div className="text-[10px] text-slate-400 font-normal">Profile, unlocks & saved properties</div>
+                        </div>
+                      </Link>
 
-                        <Link
-                          to="/register"
-                          onClick={() => setUserDropdownOpen(false)}
-                          className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-gradient-to-r from-amber-400/20 to-amber-500/20 hover:from-amber-400/30 hover:to-amber-500/30 text-white transition font-bold border border-amber-400/30 group"
-                        >
-                          <div className="w-8 h-8 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
-                            <UserPlus className="w-4 h-4" />
-                          </div>
-                          <div className="flex-1">
-                            <div className="font-extrabold text-amber-300">Register / Sign Up</div>
-                            <div className="text-[10px] text-amber-200/80 font-normal">Create a new genuine account</div>
-                          </div>
-                        </Link>
-                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setUserDropdownOpen(false);
+                          handleSignOut();
+                        }}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-red-500/20 text-red-400 hover:text-red-300 transition text-left group"
+                      >
+                        <div className="w-7 h-7 rounded-lg bg-red-500/20 text-red-400 flex items-center justify-center shrink-0 border border-red-500/30 group-hover:scale-105 transition-transform">
+                          <LogOut className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <div className="font-bold text-red-400">Sign Out</div>
+                          <div className="text-[10px] text-red-400/80 font-normal">End your current session</div>
+                        </div>
+                      </button>
                     </div>
-                  )}
-                </div>
-              )}
-            </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Mobile menu button */}
             <div className="md:hidden flex items-center">

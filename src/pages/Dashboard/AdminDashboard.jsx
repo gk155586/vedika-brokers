@@ -66,6 +66,7 @@ import { uploadMediaFile } from '@/services/mediaService';
 import UserActivityModal from '@/components/UserActivityModal';
 import AdminMorphingSubmit from '@/components/AdminMorphingSubmit';
 import { getAssetUrl } from '@/utils/assets';
+import { purgeAllMockData, isMockUser, isMockEnquiry } from '@/utils/mockDataFilters';
 
 export default function AdminDashboard() {
   const { user, signOut } = useAuth();
@@ -161,18 +162,31 @@ export default function AdminDashboard() {
   useEffect(() => {
     refreshData();
     const unsub = dataStore.subscribe(refreshData);
+
+    const handleRealtimeSync = () => {
+      refreshData();
+    };
+
+    window.addEventListener('vb-enquiries-updated', handleRealtimeSync);
+    window.addEventListener('vb-users-updated', handleRealtimeSync);
+
+    // Fast background sync every 3.5s for multi-tab real-time updates
     const liveInterval = setInterval(() => {
-      const lAudience = dataStore.getLiveAudience();
-      setLiveAudience(lAudience);
-    }, 12000);
+      refreshData();
+    }, 3500);
 
     return () => {
       unsub();
+      window.removeEventListener('vb-enquiries-updated', handleRealtimeSync);
+      window.removeEventListener('vb-users-updated', handleRealtimeSync);
       clearInterval(liveInterval);
     };
   }, []);
 
   const refreshData = async () => {
+    // Strictly zero mock / dummy data policy: Purge test seeds and legacy keys
+    purgeAllMockData();
+
     const props = await dataStore.getProperties();
     setProperties(props || []);
     const c = await dataStore.getCities();
@@ -185,16 +199,16 @@ export default function AdminDashboard() {
     setRefunds(r || []);
     const v = await dataStore.getVisits();
     setVisits(v || []);
-    const enqs = await dataStore.getEnquiries();
+    const enqs = (await dataStore.getEnquiries()).filter(e => !isMockEnquiry(e));
     setEnquiries(enqs || []);
     const l = dataStore.getLogs();
     setLogs(l || []);
     const s = dataStore.getSettings();
     setSettings(s || {});
 
-    // Load registered users with detailed likes, unlocks, visits
+    // Load registered users with detailed likes, unlocks, visits (Strictly Real-Time Accounts Only)
     try {
-      const uList = await dataStore.getUsersDetailed();
+      const uList = (await dataStore.getUsersDetailed()).filter(u => !isMockUser(u));
       setRegisteredUsers(uList || []);
       const lAudience = dataStore.getLiveAudience();
       setLiveAudience(lAudience);
@@ -3807,6 +3821,19 @@ export default function AdminDashboard() {
                 >
                   <RefreshCw className="w-4 h-4" />
                 </button>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const res = purgeAllMockData();
+                    await refreshData();
+                    alert(`Clean real-time sync completed. Any test user or mock data has been purged (${res.purgedUsersCount} removed).`);
+                  }}
+                  className="px-3 py-1.5 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition cursor-pointer shadow-2xs flex items-center gap-1.5"
+                  title="Clean and purge all mock test accounts"
+                >
+                  <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+                  <span className="hidden sm:inline">Purge Mock Data</span>
+                </button>
               </div>
             </div>
 
@@ -3988,6 +4015,18 @@ export default function AdminDashboard() {
                   if (userSortBy === 'name') return (a.name || '').localeCompare(b.name || '');
                   return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
                 });
+
+              if (registeredUsers.length === 0) {
+                return (
+                  <div className="bg-white rounded-3xl p-12 text-center border border-slate-200 space-y-3">
+                    <Users className="w-12 h-12 text-slate-300 mx-auto stroke-1" />
+                    <h3 className="text-base font-bold text-slate-900 font-serif">No Registered Users Yet</h3>
+                    <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                      Real-time user directory will populate automatically as customers register accounts on the platform.
+                    </p>
+                  </div>
+                );
+              }
 
               if (filtered.length === 0) {
                 return (
@@ -4214,6 +4253,19 @@ export default function AdminDashboard() {
               </div>
 
               <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const res = purgeAllMockData();
+                    await refreshData();
+                    alert(`Clean real-time sync completed. Any test enquiries have been purged (${res.purgedEnquiriesCount} removed).`);
+                  }}
+                  className="px-3 py-1.5 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition cursor-pointer shadow-2xs flex items-center gap-1.5"
+                  title="Purge lingering test or mock enquiries"
+                >
+                  <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+                  <span className="hidden sm:inline">Purge Mock Enquiries</span>
+                </button>
                 <button
                   type="button"
                   onClick={handleExportEnquiriesCSV}

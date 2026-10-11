@@ -11,6 +11,7 @@ import {
   Clock, 
   Compass, 
   ChevronRight, 
+  ChevronLeft, 
   Sparkles, 
   CheckCircle2, 
   ArrowRight, 
@@ -28,6 +29,223 @@ import {
 } from 'lucide-react';
 import dataStore from '@/services/dataStore';
 import PropertyCard from '@/components/PropertyCard';
+
+// Interactive Hero Location Slider: Smooth continuous leftward scroll with full two-way touch/drag/button sliding
+function HeroLocationSlider({ popularAreas, selectedArea, onAreaSelect }) {
+  const containerRef = useRef(null);
+  const isInteractingRef = useRef(false);
+  const dragStartRef = useRef({ x: 0, scrollLeft: 0, isDown: false, moved: false });
+  const resumeTimerRef = useRef(null);
+  const animFrameRef = useRef(null);
+  const lastTimeRef = useRef(null);
+
+  // Repeat popular areas 3 times to create a seamless infinite loop in both directions
+  const displayItems = [...popularAreas, ...popularAreas, ...popularAreas];
+
+  // Auto-scroll speed: 32 pixels per second moving to the left
+  const SPEED = 32;
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    // Start in the middle set so user can slide left OR right immediately
+    const initScroll = () => {
+      if (el.scrollWidth > 0) {
+        const oneThird = el.scrollWidth / 3;
+        if (el.scrollLeft === 0) {
+          el.scrollLeft = oneThird;
+        }
+      }
+    };
+    initScroll();
+    const t = setTimeout(initScroll, 150);
+
+    const tick = (time) => {
+      if (!lastTimeRef.current) lastTimeRef.current = time;
+      const delta = (time - lastTimeRef.current) / 1000;
+      lastTimeRef.current = time;
+
+      if (!isInteractingRef.current && el) {
+        el.scrollLeft += SPEED * delta;
+
+        const oneThird = el.scrollWidth / 3;
+        if (oneThird > 0) {
+          if (el.scrollLeft >= oneThird * 2) {
+            el.scrollLeft -= oneThird;
+          } else if (el.scrollLeft <= 5) {
+            el.scrollLeft += oneThird;
+          }
+        }
+      }
+
+      animFrameRef.current = requestAnimationFrame(tick);
+    };
+
+    animFrameRef.current = requestAnimationFrame(tick);
+
+    return () => {
+      clearTimeout(t);
+      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+      if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current);
+    };
+  }, [popularAreas]);
+
+  const pauseAutoScroll = () => {
+    isInteractingRef.current = true;
+    if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current);
+  };
+
+  const resumeAutoScroll = (delay = 2000) => {
+    if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current);
+    resumeTimerRef.current = setTimeout(() => {
+      if (!dragStartRef.current.isDown) {
+        lastTimeRef.current = null;
+        isInteractingRef.current = false;
+      }
+    }, delay);
+  };
+
+  const handlePointerDown = (e) => {
+    if (e.button && e.button !== 0) return;
+    pauseAutoScroll();
+    const el = containerRef.current;
+    dragStartRef.current = {
+      x: e.clientX,
+      scrollLeft: el ? el.scrollLeft : 0,
+      isDown: true,
+      moved: false
+    };
+  };
+
+  const handlePointerMove = (e) => {
+    if (!dragStartRef.current.isDown) return;
+    const el = containerRef.current;
+    if (!el) return;
+
+    const dx = e.clientX - dragStartRef.current.x;
+    if (Math.abs(dx) > 14) {
+      dragStartRef.current.moved = true;
+    }
+    el.scrollLeft = dragStartRef.current.scrollLeft - dx;
+
+    // Loop bounds check during manual drag
+    const oneThird = el.scrollWidth / 3;
+    if (oneThird > 0) {
+      if (el.scrollLeft >= oneThird * 2) {
+        el.scrollLeft -= oneThird;
+        dragStartRef.current.scrollLeft -= oneThird;
+      } else if (el.scrollLeft <= 5) {
+        el.scrollLeft += oneThird;
+        dragStartRef.current.scrollLeft += oneThird;
+      }
+    }
+  };
+
+  const handlePointerUp = () => {
+    if (dragStartRef.current.isDown) {
+      dragStartRef.current.isDown = false;
+      resumeAutoScroll(2000);
+    }
+  };
+
+  const handleSlide = (dir) => {
+    pauseAutoScroll();
+    const el = containerRef.current;
+    if (el) {
+      const step = 260 * dir;
+      el.scrollBy({ left: step, behavior: 'smooth' });
+      setTimeout(() => {
+        if (!el) return;
+        const oneThird = el.scrollWidth / 3;
+        if (oneThird > 0) {
+          if (el.scrollLeft >= oneThird * 2) {
+            el.scrollLeft -= oneThird;
+          } else if (el.scrollLeft <= 10) {
+            el.scrollLeft += oneThird;
+          }
+        }
+      }, 350);
+    }
+    resumeAutoScroll(2500);
+  };
+
+  const handleItemClick = (e, area) => {
+    if (dragStartRef.current.moved) {
+      e.preventDefault();
+      return;
+    }
+    onAreaSelect(area);
+  };
+
+  return (
+    <div className="w-full max-w-xl sm:max-w-2xl mx-auto pt-0.5 relative flex items-center gap-1.5 sm:gap-2">
+      {/* Location Pin Badge on the left */}
+      <div 
+        className="shrink-0 flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-slate-950/85 backdrop-blur-md border border-white/15 text-amber-400 shadow-md"
+        title="Explore prime Nanded localities"
+      >
+        <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400" />
+      </div>
+
+      {/* Slide Left Option Button */}
+      <button
+        type="button"
+        onClick={() => handleSlide(-1)}
+        aria-label="Slide locations left"
+        title="Slide locations left"
+        className="shrink-0 flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-slate-950/80 hover:bg-slate-900 active:scale-95 text-slate-200 hover:text-amber-400 border border-white/15 backdrop-blur-md transition shadow-md cursor-pointer z-10"
+      >
+        <ChevronLeft className="w-4 h-4" />
+      </button>
+
+      {/* Slidable & Interactive Ribbon Viewport */}
+      <div
+        ref={containerRef}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerUp}
+        onMouseEnter={pauseAutoScroll}
+        onMouseLeave={() => {
+          if (!dragStartRef.current.isDown) resumeAutoScroll(1200);
+        }}
+        className="overflow-x-auto no-scrollbar flex-1 relative py-1 cursor-grab active:cursor-grabbing select-none touch-pan-x [mask-image:linear-gradient(to_right,transparent,black_3%,black_97%,transparent)]"
+      >
+        <div className="flex items-center gap-2 w-max">
+          {displayItems.map((area, idx) => {
+            const isSelected = selectedArea === area;
+            return (
+              <button
+                key={`${area}-${idx}`}
+                type="button"
+                onClick={(e) => handleItemClick(e, area)}
+                className={`px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-semibold backdrop-blur-md transition-all shrink-0 whitespace-nowrap cursor-pointer ${
+                  isSelected
+                    ? 'bg-amber-400 text-slate-950 font-black shadow-lg ring-2 ring-amber-300 scale-105'
+                    : 'bg-slate-950/65 text-slate-200 hover:bg-white/20 border border-white/15 hover:text-white'
+                }`}
+              >
+                {area === 'All' ? 'All Areas' : area}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Slide Right Option Button */}
+      <button
+        type="button"
+        onClick={() => handleSlide(1)}
+        aria-label="Slide locations right"
+        title="Slide locations right"
+        className="shrink-0 flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-slate-950/80 hover:bg-slate-900 active:scale-95 text-slate-200 hover:text-amber-400 border border-white/15 backdrop-blur-md transition shadow-md cursor-pointer z-10"
+      >
+        <ChevronRight className="w-4 h-4" />
+      </button>
+    </div>
+  );
+}
 
 export default function Home() {
   const navigate = useNavigate();
@@ -118,8 +336,21 @@ export default function Home() {
   const popularAreas = [
     'All',
     ...(activeAreasList.length === 0
-      ? ['Zenda Chowk', 'Chhatrapati Chowk', 'Vazirabad', 'Taroda Naka', 'Shivaji Nagar', 'Anand Nagar']
-      : activeAreasList.slice(0, 6).map((a) => a.name))
+      ? [
+          'Zenda Chowk',
+          'Chhatrapati Chowk',
+          'Vazirabad',
+          'Taroda Naka',
+          'Shivaji Nagar',
+          'Anand Nagar',
+          'Workshop Corner',
+          'Nanded Railway Station Area',
+          'Cidco Nanded',
+          'Bhagya Nagar',
+          'Malegaon Road',
+          'Ambedkar Chowk'
+        ]
+      : activeAreasList.map((a) => a.name))
   ];
 
   const filteredProperties = properties.filter((p) => {
@@ -403,33 +634,12 @@ export default function Home() {
             </button>
           </form>
 
-          {/* Quick Locality Infinite Continuous Loop Ribbon (Right to Left Marquee) */}
-          <div className="w-full max-w-lg sm:max-w-xl mx-auto pt-0.5 flex items-center gap-2">
-            {/* Location Pin Icon Badge on the left */}
-            <div className="shrink-0 flex items-center justify-center w-7 h-7 rounded-full bg-slate-950/80 backdrop-blur-md border border-white/15 text-amber-400 shadow-md">
-              <MapPin className="w-3.5 h-3.5 text-amber-400" />
-            </div>
-
-            {/* Continuous Seamless Hardware-Accelerated Right-to-Left Loop */}
-            <div className="overflow-hidden flex-1 relative [mask-image:linear-gradient(to_right,transparent,black_4%,black_96%,transparent)]">
-              <div className="animate-marquee flex items-center gap-2 select-none py-1">
-                {[...popularAreas, ...popularAreas].map((area, idx) => (
-                  <button
-                    key={`${area}-${idx}`}
-                    type="button"
-                    onClick={() => handleAreaSelect(area)}
-                    className={`px-3 py-1 rounded-full text-[11px] sm:text-xs font-semibold backdrop-blur-md transition-colors shrink-0 whitespace-nowrap ${
-                      selectedArea === area
-                        ? 'bg-amber-400 text-slate-950 font-bold shadow-md ring-1 ring-amber-300'
-                        : 'bg-slate-950/60 text-slate-200 hover:bg-white/20 border border-white/15'
-                    }`}
-                  >
-                    {area === 'All' ? 'All Areas' : area}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
+          {/* Quick Locality Infinite Continuous Loop Ribbon with Sliding & Selection Controls */}
+          <HeroLocationSlider 
+            popularAreas={popularAreas} 
+            selectedArea={selectedArea} 
+            onAreaSelect={handleAreaSelect} 
+          />
         </div>
       </section>
 

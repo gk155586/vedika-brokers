@@ -62,15 +62,15 @@ export default function PropertyDetails() {
       const prop = await dataStore.getPropertyById(id);
       if (prop) {
         setProperty(prop);
-        const unlocked = await dataStore.isPropertyUnlocked(user?.id || 'guest', prop.id);
-        setIsUnlocked(unlocked);
-
         if (user && user.id && user.id !== 'guest') {
+          const unlocked = await dataStore.isPropertyUnlocked(user.id, prop.id);
+          setIsUnlocked(unlocked);
           const fav = await dataStore.isFavorite(user.id, prop.id);
           setIsFav(fav);
           const ref = await dataStore.getRefundForProperty(user.id, prop.id);
           setPropertyRefund(ref || null);
         } else {
+          setIsUnlocked(false);
           setIsFav(false);
           setPropertyRefund(null);
         }
@@ -82,11 +82,13 @@ export default function PropertyDetails() {
         setSimilarProperties(similar);
       } else {
         setProperty(null);
+        setIsUnlocked(false);
         setPropertyRefund(null);
       }
     } catch (err) {
       console.error('Error loading property:', err);
       setProperty(null);
+      setIsUnlocked(false);
       setPropertyRefund(null);
     } finally {
       setLoading(false);
@@ -115,8 +117,15 @@ export default function PropertyDetails() {
     window.scrollTo(0, 0);
     loadData();
     const unsub = dataStore.subscribe(loadData);
-    return unsub;
-  }, [id, user]);
+    const handleAuthChange = () => loadData();
+    window.addEventListener('vb_auth_change', handleAuthChange);
+    window.addEventListener('storage', handleAuthChange);
+    return () => {
+      unsub();
+      window.removeEventListener('vb_auth_change', handleAuthChange);
+      window.removeEventListener('storage', handleAuthChange);
+    };
+  }, [id, user?.id]);
 
   const galleryImages = Array.isArray(property?.images) && property.images.length > 0
     ? property.images
@@ -580,8 +589,19 @@ export default function PropertyDetails() {
                   </div>
 
                   <button
-                    onClick={() => setUnlockModalOpen(true)}
-                    className="w-full bg-gradient-to-r from-blue-900 to-indigo-900 hover:from-blue-800 hover:to-indigo-800 text-white font-black py-3.5 px-4 rounded-2xl shadow-lg hover:shadow-xl transition flex items-center justify-center gap-2 text-sm"
+                    onClick={() => {
+                      if (!user || !user.id || user.id === 'guest') {
+                        navigate('/login', {
+                          state: {
+                            from: window.location.pathname + window.location.search,
+                            message: 'Please sign in or create an account to unlock property coordinates.'
+                          }
+                        });
+                        return;
+                      }
+                      setUnlockModalOpen(true);
+                    }}
+                    className="w-full bg-gradient-to-r from-blue-900 to-indigo-900 hover:from-blue-800 hover:to-indigo-800 text-white font-black py-3.5 px-4 rounded-2xl shadow-lg hover:shadow-xl transition flex items-center justify-center gap-2 text-sm cursor-pointer"
                   >
                     <Unlock className="w-4 h-4 text-amber-400" />
                     <span>UNLOCK ADDRESS — ₹1,000</span>

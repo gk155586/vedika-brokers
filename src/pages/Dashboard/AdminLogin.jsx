@@ -1,9 +1,9 @@
 // src/pages/Dashboard/AdminLogin.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShieldCheck, Lock, Mail, ArrowRight, RefreshCw, AlertCircle } from 'lucide-react';
+import { ShieldCheck, Lock, Mail, ArrowRight, RefreshCw, AlertCircle, RotateCcw, Key } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { checkRateLimit } from '@/services/authSecurity';
+import { checkRateLimit, resetRateLimit, AUTHORIZED_ADMIN_EMAILS } from '@/services/authSecurity';
 import { getAssetUrl } from '@/utils/assets';
 
 export default function AdminLogin() {
@@ -24,8 +24,8 @@ export default function AdminLogin() {
     e.preventDefault();
     setErrorMsg('');
 
-    // Pre-flight rate limiting check
-    const rl = checkRateLimit('admin_portal_login', 5, 60000);
+    // Pre-flight rate limiting check (High limit: 25 attempts, 15s cooldown)
+    const rl = checkRateLimit('admin_portal_login', 25, 15000);
     if (!rl.allowed) {
       setErrorMsg(rl.error);
       return;
@@ -36,15 +36,23 @@ export default function AdminLogin() {
     try {
       const loggedUser = await signIn(email, password);
       if (loggedUser && loggedUser.role === 'admin') {
+        resetRateLimit('admin_portal_login');
+        resetRateLimit();
         navigate('/admin', { replace: true });
       } else {
         setErrorMsg('Access denied. This account does not possess Administrative privileges.');
       }
     } catch (err) {
-      setErrorMsg(err.message || 'Admin authentication failed.');
+      setErrorMsg(err.message || 'Admin authentication failed. Please verify credentials.');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleClearLockout = () => {
+    resetRateLimit('admin_portal_login');
+    resetRateLimit();
+    setErrorMsg('');
   };
 
   return (
@@ -66,17 +74,30 @@ export default function AdminLogin() {
         </div>
 
         {errorMsg && (
-          <div className="p-3.5 bg-red-950/80 border border-red-800 text-red-300 rounded-2xl text-xs font-semibold flex items-start gap-2 animate-in fade-in">
-            <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
-            <span>{errorMsg}</span>
+          <div className="p-3.5 bg-red-950/80 border border-red-800 text-red-300 rounded-2xl text-xs font-semibold space-y-2.5 animate-in fade-in">
+            <div className="flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+              <span className="flex-1 leading-snug">{errorMsg}</span>
+            </div>
+            <button
+              type="button"
+              onClick={handleClearLockout}
+              className="w-full py-2 px-3 rounded-xl bg-red-900/40 hover:bg-red-800/60 border border-red-700/60 text-red-200 text-[11px] font-bold transition flex items-center justify-center gap-1.5 cursor-pointer active:scale-98"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Reset Rate Limit Lockout / Clear Counter</span>
+            </button>
           </div>
         )}
 
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-slate-400 uppercase mb-1">
-              Admin Email
-            </label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-xs font-bold text-slate-400 uppercase">
+                Admin Email
+              </label>
+              <span className="text-[10px] text-amber-400 font-mono">25 Attempts Allowed</span>
+            </div>
             <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-slate-700 bg-slate-800 text-sm focus-within:border-amber-400 transition">
               <Mail className="w-4 h-4 text-slate-400" />
               <input
@@ -87,6 +108,21 @@ export default function AdminLogin() {
                 onChange={(e) => setEmail(e.target.value)}
                 className="bg-transparent w-full focus:outline-none text-xs text-white placeholder:text-slate-500"
               />
+            </div>
+            {/* Quick-fill chips for authorized admin emails */}
+            <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+              <span className="text-[10px] text-slate-500">Authorized:</span>
+              {AUTHORIZED_ADMIN_EMAILS.map((admEmail) => (
+                <button
+                  key={admEmail}
+                  type="button"
+                  onClick={() => setEmail(admEmail)}
+                  className="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-amber-300 border border-slate-700 transition font-mono cursor-pointer"
+                  title="Click to fill email"
+                >
+                  {admEmail}
+                </button>
+              ))}
             </div>
           </div>
 

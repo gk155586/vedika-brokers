@@ -1,6 +1,7 @@
 // src/hooks/useAuth.jsx
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/services/supabase';
+import dataStore from '@/services/dataStore';
 import {
   verifyAdminCredentials,
   generateAdminSessionToken,
@@ -183,9 +184,9 @@ export function AuthProvider({ children }) {
     const normalizedEmail = (email || '').trim().toLowerCase();
     const normalizedPassword = (password || '').trim();
 
-    // 1. Rate Limiting Check
+    // 1. Rate Limiting Check (High limit: 25 attempts, 15s cooldown)
     const rlKey = `login_${normalizedEmail}`;
-    const rl = checkRateLimit(rlKey, 5, 60000);
+    const rl = checkRateLimit(rlKey, 25, 15000);
     if (!rl.allowed) {
       setLoading(false);
       throw new Error(rl.error);
@@ -223,6 +224,8 @@ export function AuthProvider({ children }) {
         setUser(adminUser);
         setIsAdminVerified(true);
         localStorage.setItem('vb_current_user', JSON.stringify(adminUser));
+        dataStore.notify();
+        window.dispatchEvent(new Event('vb_auth_change'));
         return adminUser;
       }
 
@@ -250,6 +253,8 @@ export function AuthProvider({ children }) {
             }
             setUser(u);
             localStorage.setItem('vb_current_user', JSON.stringify(u));
+            dataStore.notify();
+            window.dispatchEvent(new Event('vb_auth_change'));
             return u;
           }
         } catch (_) {}
@@ -270,11 +275,13 @@ export function AuthProvider({ children }) {
         }
         setUser(localUser);
         localStorage.setItem('vb_current_user', JSON.stringify(localUser));
+        dataStore.notify();
+        window.dispatchEvent(new Event('vb_auth_change'));
         return localUser;
       }
 
       // 5. Authentication Failure: record attempt and return generic safe error
-      recordFailedAttempt(rlKey, 5, 60000);
+      recordFailedAttempt(rlKey, 25, 15000);
       throw new Error('Invalid email or password. Please verify credentials.');
     } finally {
       setLoading(false);
@@ -311,6 +318,8 @@ export function AuthProvider({ children }) {
             setUser(u);
             setIsAdminVerified(false);
             localStorage.setItem('vb_current_user', JSON.stringify(u));
+            dataStore.notify();
+            window.dispatchEvent(new Event('vb_auth_change'));
             return u;
           }
         } catch (_) {}
@@ -321,6 +330,8 @@ export function AuthProvider({ children }) {
       setUser(newUser);
       setIsAdminVerified(false);
       localStorage.setItem('vb_current_user', JSON.stringify(newUser));
+      dataStore.notify();
+      window.dispatchEvent(new Event('vb_auth_change'));
       return newUser;
     } finally {
       setLoading(false);
@@ -335,6 +346,8 @@ export function AuthProvider({ children }) {
     setUser(null);
     setIsAdminVerified(false);
     localStorage.removeItem('vb_current_user');
+    dataStore.notify();
+    window.dispatchEvent(new Event('vb_auth_change'));
   };
 
   return (

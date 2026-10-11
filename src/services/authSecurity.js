@@ -10,6 +10,8 @@
  * 5. Strict input validation and sanitization.
  */
 
+import { isMockUser } from '../utils/mockDataFilters';
+
 const PEPPER = 'vb_nanded_sec_v2_2026_93701';
 const SESSION_SECRET_KEY = 'vb_session_sign_key_nanded_broker_desk';
 
@@ -294,8 +296,9 @@ export function invalidateAdminSession() {
 
 /**
  * In-memory / session rate limiting to mitigate brute-force attempts.
+ * Increased threshold to 25 attempts with safe 15s cooldown.
  */
-export function checkRateLimit(key, maxAttempts = 5, lockTimeMs = 60000) {
+export function checkRateLimit(key, maxAttempts = 25, lockTimeMs = 15000) {
   try {
     const raw = sessionStorage.getItem(`vb_rl_${key}`);
     if (!raw) return { allowed: true, remaining: maxAttempts };
@@ -303,31 +306,37 @@ export function checkRateLimit(key, maxAttempts = 5, lockTimeMs = 60000) {
     const data = JSON.parse(raw);
     const now = Date.now();
 
+    // If lock duration has expired, reset attempt counter and allow
+    if (data.lockedUntil && now >= data.lockedUntil) {
+      sessionStorage.removeItem(`vb_rl_${key}`);
+      return { allowed: true, remaining: maxAttempts };
+    }
+
     if (data.lockedUntil && now < data.lockedUntil) {
-      const waitSeconds = Math.ceil((data.lockedUntil - now) / 1000);
+      const waitSeconds = Math.max(1, Math.ceil((data.lockedUntil - now) / 1000));
       return {
         allowed: false,
         waitSeconds,
-        error: `Too many failed attempts. Please wait ${waitSeconds} seconds before trying again.`,
+        error: `Too many failed attempts. Please wait ${waitSeconds}s before trying again.`,
       };
     }
 
     // Reset if window has elapsed
-    if (now - data.firstAttempt > lockTimeMs * 2) {
+    if (data.firstAttempt && now - data.firstAttempt > lockTimeMs * 4) {
       sessionStorage.removeItem(`vb_rl_${key}`);
       return { allowed: true, remaining: maxAttempts };
     }
 
     if (data.attempts >= maxAttempts) {
-      const lockUntil = now + lockTimeMs;
-      sessionStorage.setItem(
-        `vb_rl_${key}`,
-        JSON.stringify({ ...data, lockedUntil: lockUntil })
-      );
+      if (!data.lockedUntil) {
+        data.lockedUntil = now + lockTimeMs;
+        sessionStorage.setItem(`vb_rl_${key}`, JSON.stringify(data));
+      }
+      const waitSeconds = Math.max(1, Math.ceil((data.lockedUntil - now) / 1000));
       return {
         allowed: false,
-        waitSeconds: Math.ceil(lockTimeMs / 1000),
-        error: `Too many failed attempts. Account temporarily locked for 60 seconds.`,
+        waitSeconds,
+        error: `Too many failed attempts (${data.attempts}/${maxAttempts}). Account temporarily locked for ${waitSeconds}s.`,
       };
     }
 
@@ -337,23 +346,42 @@ export function checkRateLimit(key, maxAttempts = 5, lockTimeMs = 60000) {
   }
 }
 
-export function recordFailedAttempt(key, maxAttempts = 5, lockTimeMs = 60000) {
+export function recordFailedAttempt(key, maxAttempts = 25, lockTimeMs = 15000) {
   try {
     const raw = sessionStorage.getItem(`vb_rl_${key}`);
     const now = Date.now();
     let data = raw ? JSON.parse(raw) : { attempts: 0, firstAttempt: now };
 
     data.attempts += 1;
-    if (data.attempts >= maxAttempts) {
+    if (data.attempts >= maxAttempts && !data.lockedUntil) {
       data.lockedUntil = now + lockTimeMs;
     }
     sessionStorage.setItem(`vb_rl_${key}`, JSON.stringify(data));
-  } catch (_) {}
+    return {
+      attempts: data.attempts,
+      remaining: Math.max(0, maxAttempts - data.attempts),
+      isLocked: data.attempts >= maxAttempts,
+    };
+  } catch (_) {
+    return { attempts: 1, remaining: maxAttempts - 1, isLocked: false };
+  }
 }
 
-export function resetRateLimit(key) {
+export function resetRateLimit(key = null) {
   try {
-    sessionStorage.removeItem(`vb_rl_${key}`);
+    if (key) {
+      sessionStorage.removeItem(`vb_rl_${key}`);
+    } else {
+      // Clear all rate limit records in sessionStorage
+      const toRemove = [];
+      for (let i = 0; i < sessionStorage.length; i++) {
+        const k = sessionStorage.key(i);
+        if (k && k.startsWith('vb_rl_')) {
+          toRemove.push(k);
+        }
+      }
+      toRemove.forEach((k) => sessionStorage.removeItem(k));
+    }
   } catch (_) {}
 }
 
@@ -388,6 +416,9 @@ export async function registerLocalUser(name, email, password, phone = '') {
       users = [];
     }
   }
+
+  // Filter out any mock testing users
+  users = users.filter((u) => !isMockUser(u));
 
   // Prevent duplicate registration
   const duplicate = users.find((u) => u.email.toLowerCase() === normalizedEmail);
@@ -445,6 +476,8 @@ export async function authenticateLocalUser(email, password) {
   } catch (_) {
     users = [];
   }
+
+  users = users.filter((u) => !isMockUser(u));
 
   const user = users.find((u) => u.email.toLowerCase() === normalizedEmail);
   if (!user || !user.passwordHash || !user.salt) {
