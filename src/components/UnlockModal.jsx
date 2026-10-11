@@ -98,6 +98,7 @@ export default function UnlockModal({ property, isOpen, onClose, onUnlocked }) {
               method: 'razorpay',
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_order_id: response.razorpay_order_id,
+              email: user?.email || null,
             };
             await dataStore.unlockAddress(user.id, property.id, payData);
             triggerCelebration();
@@ -122,6 +123,7 @@ export default function UnlockModal({ property, isOpen, onClose, onUnlocked }) {
           const payData = {
             method: 'razorpay_demo',
             razorpay_payment_id: `PAY_DEMO_${Date.now().toString(36).toUpperCase()}`,
+            email: user?.email || null,
           };
           await dataStore.unlockAddress(user.id, property.id, payData);
           triggerCelebration();

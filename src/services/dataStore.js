@@ -1167,12 +1167,28 @@ export class DataStore {
   }
 
   // --- UNLOCK & PAYMENT ---
-  async isPropertyUnlocked(userId, propertyId) {
+  getAllUnlocks() {
+    try {
+      const unlocks = JSON.parse(localStorage.getItem('vb_unlocks') || '[]');
+      return Array.isArray(unlocks) ? unlocks : [];
+    } catch (_) {
+      return [];
+    }
+  }
+
+  async isPropertyUnlocked(userId, propertyId, userEmail = null) {
     if (!userId || userId === 'guest' || typeof userId !== 'string' || !propertyId) {
       return false;
     }
-    const unlocks = JSON.parse(localStorage.getItem('vb_unlocks') || '[]');
-    return unlocks.some((u) => u && u.user_id === userId && u.property_id === propertyId);
+    const strId = String(userId).trim();
+    const strPropId = String(propertyId).trim();
+    const strEmail = userEmail ? String(userEmail).trim().toLowerCase() : null;
+    const unlocks = this.getAllUnlocks();
+    return unlocks.some((u) => 
+      u && 
+      (String(u.user_id).trim() === strId || (strEmail && u.user_email && String(u.user_email).trim().toLowerCase() === strEmail)) && 
+      String(u.property_id).trim() === strPropId
+    );
   }
 
   async unlockAddress(userId, propertyId, paymentDetails = {}) {
@@ -1180,32 +1196,43 @@ export class DataStore {
       throw new Error("You must be signed in with a genuine account to unlock a property address.");
     }
 
-    const unlocks = JSON.parse(localStorage.getItem('vb_unlocks') || '[]');
+    const unlocks = this.getAllUnlocks();
     const payments = JSON.parse(localStorage.getItem('vb_payments') || '[]');
     const settings = this.getSettings();
+    const now = new Date().toISOString();
+    const userEmail = paymentDetails.email ? String(paymentDetails.email).trim().toLowerCase() : null;
 
     const paymentId = `pay-${Date.now()}`;
     const newPayment = {
       id: paymentId,
       user_id: userId,
+      user_email: userEmail,
       property_id: propertyId,
       amount: settings.unlock_fee || 1000,
       payment_method: paymentDetails.method || 'razorpay',
       razorpay_payment_id: paymentDetails.razorpay_payment_id || `pay_sim_${Date.now()}`,
       razorpay_order_id: paymentDetails.razorpay_order_id || `order_sim_${Date.now()}`,
       status: 'paid',
-      created_at: new Date().toISOString(),
+      created_at: now,
     };
     payments.unshift(newPayment);
     localStorage.setItem('vb_payments', JSON.stringify(payments));
 
-    if (!unlocks.some((u) => u && u.user_id === userId && u.property_id === propertyId)) {
+    const existingUnlock = unlocks.find((u) => 
+      u && 
+      (String(u.user_id).trim() === String(userId).trim() || (userEmail && u.user_email && String(u.user_email).trim().toLowerCase() === userEmail)) && 
+      String(u.property_id).trim() === String(propertyId).trim()
+    );
+
+    if (!existingUnlock) {
       unlocks.unshift({
         id: `unlock-${Date.now()}`,
         user_id: userId,
+        user_email: userEmail,
         property_id: propertyId,
         payment_id: paymentId,
-        unlocked_at: new Date().toISOString(),
+        unlocked_at: now,
+        created_at: now,
       });
       localStorage.setItem('vb_unlocks', JSON.stringify(unlocks));
     }
@@ -1219,19 +1246,31 @@ export class DataStore {
     }
 
     this.logAction(`Address unlocked for property ${propertyId}`, 'Payment', paymentId);
+
+    // Cross-tab and immediate UI sync
+    if (typeof window !== 'undefined') {
+      try {
+        window.dispatchEvent(new CustomEvent('vb-unlocks-updated', { detail: { userId, propertyId } }));
+      } catch (_) {}
+    }
     this.notify();
     return true;
   }
 
-  async getUserUnlocks(userId) {
+  async getUserUnlocks(userId, userEmail = null) {
     if (!userId || userId === 'guest') return [];
-    const unlocks = JSON.parse(localStorage.getItem('vb_unlocks') || '[]');
+    const strId = String(userId).trim();
+    const strEmail = userEmail ? String(userEmail).trim().toLowerCase() : null;
+    const unlocks = this.getAllUnlocks();
     const properties = await this.getProperties();
     return unlocks
-      .filter((u) => u && u.user_id === userId)
+      .filter((u) => u && (
+        String(u.user_id).trim() === strId ||
+        (strEmail && u.user_email && String(u.user_email).trim().toLowerCase() === strEmail)
+      ))
       .map((u) => {
         const prop = properties.find((p) => p.id === u.property_id);
-        return { ...u, property: prop };
+        return { ...u, property: prop, unlocked_at: u.unlocked_at || u.created_at };
       });
   }
 
@@ -1667,11 +1706,16 @@ export class DataStore {
         .filter(Boolean);
 
       // Find unlocked properties
-      const userUnlocks = allUnlocks.filter(u => u.user_id === user.id);
+      const userUnlocks = allUnlocks.filter(u => 
+        u && (
+          String(u.user_id).trim() === String(user.id).trim() ||
+          (user.email && u.user_email && String(u.user_email).trim().toLowerCase() === String(user.email).trim().toLowerCase())
+        )
+      );
       const unlockedProps = userUnlocks
         .map(u => {
           const prop = properties.find(p => p.id === u.property_id);
-          return prop ? { ...prop, unlocked_at: u.created_at } : null;
+          return prop ? { ...prop, unlocked_at: u.unlocked_at || u.created_at } : null;
         })
         .filter(Boolean);
 

@@ -169,6 +169,7 @@ export default function AdminDashboard() {
 
     window.addEventListener('vb-enquiries-updated', handleRealtimeSync);
     window.addEventListener('vb-users-updated', handleRealtimeSync);
+    window.addEventListener('vb-unlocks-updated', handleRealtimeSync);
 
     // Fast background sync every 3.5s for multi-tab real-time updates
     const liveInterval = setInterval(() => {
@@ -179,6 +180,7 @@ export default function AdminDashboard() {
       unsub();
       window.removeEventListener('vb-enquiries-updated', handleRealtimeSync);
       window.removeEventListener('vb-users-updated', handleRealtimeSync);
+      window.removeEventListener('vb-unlocks-updated', handleRealtimeSync);
       clearInterval(liveInterval);
     };
   }, []);
@@ -648,7 +650,11 @@ export default function AdminDashboard() {
   // --- STATS COMPUTATION ---
   const totalRevenue = payments.filter((p) => p.status === 'paid').reduce((acc, curr) => acc + (curr.amount || 1000), 0);
   const pendingRefundsCount = refunds.filter((r) => r.status === 'pending').length;
-  const totalUnlocksCount = properties.reduce((acc, curr) => acc + (curr.unlocks_count || 0), 0);
+  const verifiedUnlocksCount = Math.max(
+    registeredUsers.reduce((sum, u) => sum + (u.unlocksCount || 0), 0),
+    dataStore.getAllUnlocks().length
+  );
+  const totalUnlocksCount = Math.max(properties.reduce((acc, curr) => acc + (curr.unlocks_count || 0), 0), verifiedUnlocksCount);
   const activeAreasCount = areas.filter(a => a.active).length;
 
   // Filtered audit logs
@@ -1740,7 +1746,7 @@ export default function AdminDashboard() {
                   <div>
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Address Unlocks</span>
                     <span className="text-base sm:text-lg font-black text-amber-300 font-serif leading-none">
-                      {registeredUsers.reduce((sum, u) => sum + (u.unlocksCount || 0), 0)} Leads
+                      {verifiedUnlocksCount} Leads
                     </span>
                   </div>
                 </div>
@@ -3891,7 +3897,7 @@ export default function AdminDashboard() {
                 </div>
                 <div className="my-2">
                   <div className="text-2xl sm:text-3xl font-black text-amber-600 font-serif">
-                    {registeredUsers.reduce((sum, u) => sum + (u.unlocksCount || 0), 0)}
+                    {verifiedUnlocksCount}
                   </div>
                 </div>
                 <div className="text-[10px] text-slate-500 font-medium border-t border-slate-100 pt-2 flex items-center justify-between">
