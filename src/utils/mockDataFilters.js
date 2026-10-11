@@ -220,6 +220,37 @@ export function purgeAllMockData() {
         }
       }
     } catch (_) {}
+
+    // 8. Purge mock property unlock counters: ensure unlocks_count reflects only genuine transactions
+    try {
+      const propsRaw = localStorage.getItem('vb_properties');
+      if (propsRaw) {
+        const props = JSON.parse(propsRaw);
+        if (Array.isArray(props)) {
+          const rawUnlocks = localStorage.getItem('vb_unlocks');
+          let currentUnlocks = [];
+          try {
+            currentUnlocks = JSON.parse(rawUnlocks || '[]');
+          } catch (_) {
+            currentUnlocks = [];
+          }
+          if (!Array.isArray(currentUnlocks)) currentUnlocks = [];
+
+          const realCounts = {};
+          currentUnlocks.forEach((u) => {
+            if (u && u.property_id) {
+              realCounts[u.property_id] = (realCounts[u.property_id] || 0) + 1;
+            }
+          });
+
+          const sanitizedProps = props.map((p) => ({
+            ...p,
+            unlocks_count: realCounts[p.id] || 0,
+          }));
+          localStorage.setItem('vb_properties', JSON.stringify(sanitizedProps));
+        }
+      }
+    } catch (_) {}
   } catch (err) {
     console.warn('Notice during mock data purge:', err);
   }

@@ -224,7 +224,7 @@ export const INITIAL_PROPERTIES = [
     status: 'available',
     is_verified: true,
     views_count: 142,
-    unlocks_count: 19,
+    unlocks_count: 0,
     main_image_url: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1000&q=80',
     images: [
       'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1000&q=80',
@@ -266,7 +266,7 @@ export const INITIAL_PROPERTIES = [
     status: 'available',
     is_verified: true,
     views_count: 215,
-    unlocks_count: 31,
+    unlocks_count: 0,
     main_image_url: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1000&q=80',
     images: [
       'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1000&q=80',
@@ -307,7 +307,7 @@ export const INITIAL_PROPERTIES = [
     status: 'available',
     is_verified: true,
     views_count: 310,
-    unlocks_count: 42,
+    unlocks_count: 0,
     main_image_url: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1000&q=80',
     images: [
       'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1000&q=80',
@@ -347,7 +347,7 @@ export const INITIAL_PROPERTIES = [
     status: 'available',
     is_verified: true,
     views_count: 98,
-    unlocks_count: 14,
+    unlocks_count: 0,
     main_image_url: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1000&q=80',
     images: [
       'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1000&q=80',
@@ -387,7 +387,7 @@ export const INITIAL_PROPERTIES = [
     status: 'available',
     is_verified: true,
     views_count: 420,
-    unlocks_count: 58,
+    unlocks_count: 0,
     main_image_url: 'https://images.unsplash.com/photo-1512915922686-57c11dde9b6b?auto=format&fit=crop&w=1000&q=80',
     images: [
       'https://images.unsplash.com/photo-1512915922686-57c11dde9b6b?auto=format&fit=crop&w=1000&q=80',
@@ -427,7 +427,7 @@ export const INITIAL_PROPERTIES = [
     status: 'available',
     is_verified: true,
     views_count: 178,
-    unlocks_count: 22,
+    unlocks_count: 0,
     main_image_url: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=1000&q=80',
     images: [
       'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=1000&q=80',
@@ -467,7 +467,7 @@ export const INITIAL_PROPERTIES = [
     status: 'available',
     is_verified: true,
     views_count: 245,
-    unlocks_count: 36,
+    unlocks_count: 0,
     main_image_url: 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=1000&q=80',
     images: [
       'https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=1000&q=80',
@@ -1096,7 +1096,24 @@ export class DataStore {
     try {
       const stored = JSON.parse(localStorage.getItem('vb_properties') || '[]');
       if (Array.isArray(stored) && stored.length > 0) {
-        return stored;
+        // Strictly real-time: Calculate unlocks_count from verified ledger
+        const realUnlocks = this.getAllUnlocks();
+        const counts = {};
+        realUnlocks.forEach((u) => {
+          if (u && u.property_id) {
+            counts[u.property_id] = (counts[u.property_id] || 0) + 1;
+          }
+        });
+        const sanitized = stored.map((p) => ({
+          ...p,
+          unlocks_count: counts[p.id] || 0,
+        }));
+        if (stored.some((p) => Number(p.unlocks_count || 0) !== (counts[p.id] || 0))) {
+          try {
+            localStorage.setItem('vb_properties', JSON.stringify(sanitized));
+          } catch (_) {}
+        }
+        return sanitized;
       }
     } catch (_) {}
 
