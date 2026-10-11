@@ -157,6 +157,8 @@ export default function AdminDashboard() {
   const [deletingUser, setDeletingUser] = useState(null);
   const [suspendingUser, setSuspendingUser] = useState(null);
   const [suspendReason, setSuspendReason] = useState('');
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [justRefreshed, setJustRefreshed] = useState(false);
 
   // Initial load & real-time sync
   useEffect(() => {
@@ -187,26 +189,52 @@ export default function AdminDashboard() {
 
   const refreshData = async () => {
     // Strictly zero mock / dummy data policy: Purge test seeds and legacy keys
-    purgeAllMockData();
+    try { purgeAllMockData(); } catch (_) {}
 
-    const props = await dataStore.getProperties();
-    setProperties(props || []);
-    const c = await dataStore.getCities();
-    setCities(c || []);
-    const a = await dataStore.getAreas({ includeInactive: true });
-    setAreas(a || []);
-    const p = dataStore.getAllPayments();
-    setPayments(p || []);
-    const r = await dataStore.getRefunds();
-    setRefunds(r || []);
-    const v = await dataStore.getVisits();
-    setVisits(v || []);
-    const enqs = (await dataStore.getEnquiries()).filter(e => !isMockEnquiry(e));
-    setEnquiries(enqs || []);
-    const l = dataStore.getLogs();
-    setLogs(l || []);
-    const s = dataStore.getSettings();
-    setSettings(s || {});
+    try {
+      const props = await dataStore.getProperties();
+      setProperties(props || []);
+    } catch (_) {}
+
+    try {
+      const c = await dataStore.getCities();
+      setCities(c || []);
+    } catch (_) {}
+
+    try {
+      const a = await dataStore.getAreas({ includeInactive: true });
+      setAreas(a || []);
+    } catch (_) {}
+
+    try {
+      const p = dataStore.getAllPayments();
+      setPayments(p || []);
+    } catch (_) {}
+
+    try {
+      const r = await dataStore.getRefunds();
+      setRefunds(r || []);
+    } catch (_) {}
+
+    try {
+      const v = await dataStore.getVisits();
+      setVisits(v || []);
+    } catch (_) {}
+
+    try {
+      const enqs = (await dataStore.getEnquiries()).filter(e => !isMockEnquiry(e));
+      setEnquiries(enqs || []);
+    } catch (_) {}
+
+    try {
+      const l = dataStore.getLogs();
+      setLogs(l || []);
+    } catch (_) {}
+
+    try {
+      const s = dataStore.getSettings();
+      setSettings(s || {});
+    } catch (_) {}
 
     // Load registered users with detailed likes, unlocks, visits (Strictly Real-Time Accounts Only)
     try {
@@ -215,6 +243,19 @@ export default function AdminDashboard() {
       const lAudience = dataStore.getLiveAudience();
       setLiveAudience(lAudience);
     } catch (_) {}
+  };
+
+  const handleManualRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await refreshData();
+      setJustRefreshed(true);
+      setTimeout(() => setJustRefreshed(false), 2000);
+    } catch (err) {
+      console.warn('Manual refresh notice:', err);
+    } finally {
+      setTimeout(() => setIsRefreshing(false), 600);
+    }
   };
 
   const handleDeleteUser = async (userToDelete) => {
@@ -1602,12 +1643,26 @@ export default function AdminDashboard() {
             </span>
 
             <button
-              onClick={refreshData}
-              className="px-3 py-1.5 sm:py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold transition flex items-center gap-1.5 shadow-2xs cursor-pointer"
-              title="Refresh Real-time Database"
+              type="button"
+              onClick={handleManualRefresh}
+              disabled={isRefreshing}
+              className="px-3 py-1.5 sm:py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold transition flex items-center gap-1.5 shadow-2xs cursor-pointer active:scale-95 disabled:opacity-75"
+              title="Refresh database records"
             >
-              <RefreshCw className="w-3.5 h-3.5 text-slate-600" />
-              <span>Refresh</span>
+              <RefreshCw className={`w-3.5 h-3.5 text-slate-600 transition-transform ${isRefreshing ? 'animate-spin text-blue-900' : ''}`} />
+              <span>{isRefreshing ? 'Syncing...' : justRefreshed ? 'Synced!' : 'Refresh'}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                try { purgeAllMockData(); } catch (_) {}
+                window.location.reload();
+              }}
+              className="p-1.5 sm:p-2 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 text-slate-500 hover:text-blue-900 transition flex items-center shadow-2xs cursor-pointer"
+              title="Hard reload application page (Get latest build from server)"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
             </button>
 
             <button
@@ -3821,11 +3876,12 @@ export default function AdminDashboard() {
                 </div>
                 <button
                   type="button"
-                  onClick={refreshData}
-                  className="p-2 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-600 transition cursor-pointer shadow-2xs"
+                  onClick={handleManualRefresh}
+                  disabled={isRefreshing}
+                  className="p-2 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-600 transition cursor-pointer shadow-2xs disabled:opacity-75"
                   title="Refresh User Data"
                 >
-                  <RefreshCw className="w-4 h-4" />
+                  <RefreshCw className={`w-4 h-4 transition-transform ${isRefreshing ? 'animate-spin text-blue-900' : ''}`} />
                 </button>
                 <button
                   type="button"
