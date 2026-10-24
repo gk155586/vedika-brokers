@@ -78,19 +78,14 @@ export default function Profile() {
 
   return (
     <div className="relative min-h-screen">
-      {/* 1. Full-screen Background Video (Playing flats & apartments tour in background) */}
+      {/* 1. Fast, High-Performance Architectural Visual Backdrop (Zero CPU/Bandwidth strain) */}
       <div className="fixed inset-0 w-full h-full overflow-hidden pointer-events-none z-0">
-        <video
-          src={getAssetUrl('/tour/full-tour-merged.mp4')}
-          poster={getAssetUrl('/tour/1.jpg')}
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="w-full h-full object-cover object-center scale-105 brightness-90 contrast-[1.05]"
+        <div 
+          className="w-full h-full bg-cover bg-center filter brightness-75 contrast-105"
+          style={{ backgroundImage: `url(${getAssetUrl('/modern_glass_villa.jpg')})` }}
         />
         {/* Dark luminous overlay for high contrast and crystal clear glass readability */}
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/70 to-slate-950/80 backdrop-blur-[2px]" />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/80 to-slate-950/90 backdrop-blur-xs" />
       </div>
 
       {/* 2. Overall Transparent User Account Content Layered on Top of the Video */}

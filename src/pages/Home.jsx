@@ -6,10 +6,8 @@ import {
   Building2, 
   Search, 
   Key, 
-  ShoppingBag, 
   ShieldCheck, 
   Clock, 
-  Compass, 
   ChevronRight, 
   ChevronLeft, 
   Sparkles, 
@@ -17,210 +15,54 @@ import {
   ArrowRight, 
   HelpCircle, 
   ChevronDown, 
-  Star, 
-  Users,
-  MapPin,
-  X,
-  Phone,
-  Play,
-  Pause,
+  MapPin, 
+  X, 
+  Phone, 
+  MessageSquare,
   SlidersHorizontal,
-  MessageSquare
+  Compass,
+  ArrowUpRight
 } from 'lucide-react';
 import dataStore from '@/services/dataStore';
 import PropertyCard from '@/components/PropertyCard';
 
-// Interactive Hero Location Slider: Smooth continuous leftward scroll with full two-way touch/drag/button sliding
+// Smooth, Lightweight & GPU-Accelerated Location Ribbon (Zero CPU Jank)
 function HeroLocationSlider({ popularAreas, selectedArea, onAreaSelect }) {
   const containerRef = useRef(null);
-  const isInteractingRef = useRef(false);
-  const dragStartRef = useRef({ x: 0, scrollLeft: 0, isDown: false, moved: false });
-  const resumeTimerRef = useRef(null);
-  const animFrameRef = useRef(null);
-  const lastTimeRef = useRef(null);
-
-  // Repeat popular areas 3 times to create a seamless infinite loop in both directions
-  const displayItems = [...popularAreas, ...popularAreas, ...popularAreas];
-
-  // Auto-scroll speed: 32 pixels per second moving to the left
-  const SPEED = 32;
-
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-
-    // Start in the middle set so user can slide left OR right immediately
-    const initScroll = () => {
-      if (el.scrollWidth > 0) {
-        const oneThird = el.scrollWidth / 3;
-        if (el.scrollLeft === 0) {
-          el.scrollLeft = oneThird;
-        }
-      }
-    };
-    initScroll();
-    const t = setTimeout(initScroll, 150);
-
-    const tick = (time) => {
-      if (!lastTimeRef.current) lastTimeRef.current = time;
-      const delta = (time - lastTimeRef.current) / 1000;
-      lastTimeRef.current = time;
-
-      if (!isInteractingRef.current && el) {
-        el.scrollLeft += SPEED * delta;
-
-        const oneThird = el.scrollWidth / 3;
-        if (oneThird > 0) {
-          if (el.scrollLeft >= oneThird * 2) {
-            el.scrollLeft -= oneThird;
-          } else if (el.scrollLeft <= 5) {
-            el.scrollLeft += oneThird;
-          }
-        }
-      }
-
-      animFrameRef.current = requestAnimationFrame(tick);
-    };
-
-    animFrameRef.current = requestAnimationFrame(tick);
-
-    return () => {
-      clearTimeout(t);
-      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
-      if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current);
-    };
-  }, [popularAreas]);
-
-  const pauseAutoScroll = () => {
-    isInteractingRef.current = true;
-    if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current);
-  };
-
-  const resumeAutoScroll = (delay = 2000) => {
-    if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current);
-    resumeTimerRef.current = setTimeout(() => {
-      if (!dragStartRef.current.isDown) {
-        lastTimeRef.current = null;
-        isInteractingRef.current = false;
-      }
-    }, delay);
-  };
-
-  const handlePointerDown = (e) => {
-    if (e.button && e.button !== 0) return;
-    pauseAutoScroll();
-    const el = containerRef.current;
-    dragStartRef.current = {
-      x: e.clientX,
-      scrollLeft: el ? el.scrollLeft : 0,
-      isDown: true,
-      moved: false
-    };
-  };
-
-  const handlePointerMove = (e) => {
-    if (!dragStartRef.current.isDown) return;
-    const el = containerRef.current;
-    if (!el) return;
-
-    const dx = e.clientX - dragStartRef.current.x;
-    if (Math.abs(dx) > 14) {
-      dragStartRef.current.moved = true;
-    }
-    el.scrollLeft = dragStartRef.current.scrollLeft - dx;
-
-    // Loop bounds check during manual drag
-    const oneThird = el.scrollWidth / 3;
-    if (oneThird > 0) {
-      if (el.scrollLeft >= oneThird * 2) {
-        el.scrollLeft -= oneThird;
-        dragStartRef.current.scrollLeft -= oneThird;
-      } else if (el.scrollLeft <= 5) {
-        el.scrollLeft += oneThird;
-        dragStartRef.current.scrollLeft += oneThird;
-      }
-    }
-  };
-
-  const handlePointerUp = () => {
-    if (dragStartRef.current.isDown) {
-      dragStartRef.current.isDown = false;
-      resumeAutoScroll(2000);
-    }
-  };
 
   const handleSlide = (dir) => {
-    pauseAutoScroll();
     const el = containerRef.current;
     if (el) {
-      const step = 260 * dir;
-      el.scrollBy({ left: step, behavior: 'smooth' });
-      setTimeout(() => {
-        if (!el) return;
-        const oneThird = el.scrollWidth / 3;
-        if (oneThird > 0) {
-          if (el.scrollLeft >= oneThird * 2) {
-            el.scrollLeft -= oneThird;
-          } else if (el.scrollLeft <= 10) {
-            el.scrollLeft += oneThird;
-          }
-        }
-      }, 350);
+      el.scrollBy({ left: 240 * dir, behavior: 'smooth' });
     }
-    resumeAutoScroll(2500);
-  };
-
-  const handleItemClick = (e, area) => {
-    if (dragStartRef.current.moved) {
-      e.preventDefault();
-      return;
-    }
-    onAreaSelect(area);
   };
 
   return (
     <div className="w-full max-w-xl sm:max-w-2xl mx-auto pt-0.5 relative flex items-center gap-1.5 sm:gap-2">
-      {/* Location Pin Badge on the left */}
-      <div 
-        className="shrink-0 flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-slate-950/85 backdrop-blur-md border border-white/15 text-amber-400 shadow-md"
-        title="Explore prime Nanded localities"
-      >
-        <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400" />
-      </div>
-
       {/* Slide Left Option Button */}
       <button
         type="button"
         onClick={() => handleSlide(-1)}
         aria-label="Slide locations left"
-        title="Slide locations left"
         className="shrink-0 flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-slate-950/80 hover:bg-slate-900 active:scale-95 text-slate-200 hover:text-amber-400 border border-white/15 backdrop-blur-md transition shadow-md cursor-pointer z-10"
       >
         <ChevronLeft className="w-4 h-4" />
       </button>
 
-      {/* Slidable & Interactive Ribbon Viewport */}
+      {/* Smooth, Native Touch-Friendly Scrollable Ribbon */}
       <div
         ref={containerRef}
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerUp}
-        onPointerCancel={handlePointerUp}
-        onMouseEnter={pauseAutoScroll}
-        onMouseLeave={() => {
-          if (!dragStartRef.current.isDown) resumeAutoScroll(1200);
-        }}
-        className="overflow-x-auto no-scrollbar flex-1 relative py-1 cursor-grab active:cursor-grabbing select-none touch-pan-x [mask-image:linear-gradient(to_right,transparent,black_3%,black_97%,transparent)]"
+        className="overflow-x-auto no-scrollbar flex-1 relative py-1 select-none scroll-smooth [mask-image:linear-gradient(to_right,transparent,black_4%,black_96%,transparent)]"
       >
-        <div className="flex items-center gap-2 w-max">
-          {displayItems.map((area, idx) => {
+        <div className="flex items-center gap-2 w-max px-2">
+          {popularAreas.map((area) => {
             const isSelected = selectedArea === area;
             return (
               <button
-                key={`${area}-${idx}`}
+                key={area}
                 type="button"
-                onClick={(e) => handleItemClick(e, area)}
-                className={`px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-semibold backdrop-blur-md transition-all shrink-0 whitespace-nowrap cursor-pointer ${
+                onClick={() => onAreaSelect(area)}
+                className={`px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-semibold backdrop-blur-md transition-all shrink-0 whitespace-nowrap cursor-pointer active:scale-95 ${
                   isSelected
                     ? 'bg-amber-400 text-slate-950 font-black shadow-lg ring-2 ring-amber-300 scale-105'
                     : 'bg-slate-950/65 text-slate-200 hover:bg-white/20 border border-white/15 hover:text-white'
@@ -238,7 +80,6 @@ function HeroLocationSlider({ popularAreas, selectedArea, onAreaSelect }) {
         type="button"
         onClick={() => handleSlide(1)}
         aria-label="Slide locations right"
-        title="Slide locations right"
         className="shrink-0 flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-slate-950/80 hover:bg-slate-900 active:scale-95 text-slate-200 hover:text-amber-400 border border-white/15 backdrop-blur-md transition shadow-md cursor-pointer z-10"
       >
         <ChevronRight className="w-4 h-4" />
@@ -249,29 +90,19 @@ function HeroLocationSlider({ popularAreas, selectedArea, onAreaSelect }) {
 
 export default function Home() {
   const navigate = useNavigate();
-  const [properties, setProperties] = useState([]);
-  const [areas, setAreas] = useState([]);
+  // Frame-1 instant data: load synchronously from local store so content is visible in 0ms
+  const [properties, setProperties] = useState(() => dataStore.getPropertiesSync());
+  const [areas, setAreas] = useState(() => dataStore.getAreasSync({ includeInactive: false }));
   const [settings, setSettings] = useState(() => dataStore.getSettings());
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedArea, setSelectedArea] = useState('All');
   const [selectedBhk, setSelectedBhk] = useState('All');
+  const [selectedListingType, setSelectedListingType] = useState('All'); // 'All' | 'rent' | 'buy'
   const [openFaq, setOpenFaq] = useState(null);
-  const [animatingBtn, setAnimatingBtn] = useState(null); // 'buy' | 'rent' | null
+  const [videoLoaded, setVideoLoaded] = useState(false);
+  const videoRef = useRef(null);
 
-  const handleHeroNavClick = (e, path, type) => {
-    if (e.metaKey || e.ctrlKey || e.shiftKey || (e.button && e.button !== 0)) {
-      return;
-    }
-    e.preventDefault();
-    setAnimatingBtn(type);
-    setTimeout(() => {
-      navigate(path);
-      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-      setAnimatingBtn(null);
-    }, 280);
-  };
-
-  // Smooth scroll to hash anchor if present (e.g. #tour-showcase)
+  // Smooth scroll to hash anchor if present
   useEffect(() => {
     if (window.location.hash) {
       const hash = window.location.hash;
@@ -284,16 +115,11 @@ export default function Home() {
     }
   }, []);
 
-  // Background video playback state
-  const videoRef = useRef(null);
-  const [isVideoPlaying, setIsVideoPlaying] = useState(true);
-  const scrollTimeoutRef = useRef(null);
-
   const loadData = async () => {
     const allProps = await dataStore.getProperties();
-    setProperties(allProps || []);
+    if (allProps) setProperties(allProps);
     const loadedAreas = await dataStore.getAreas({ includeInactive: false });
-    setAreas(loadedAreas || []);
+    if (loadedAreas) setAreas(loadedAreas);
     setSettings(dataStore.getSettings());
   };
 
@@ -303,11 +129,18 @@ export default function Home() {
     return () => unsub();
   }, []);
 
-  // Ensure video autoplays smoothly without CPU-intensive scroll listeners
+  // Performance Optimization: Never load heavy 5.7MB video on mobile screens or touch devices.
+  // On desktop, load only after user has finished initial interaction to avoid network choking.
   useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-    video.play().catch(() => {});
+    const isMobile = typeof window !== 'undefined' && (window.innerWidth < 768 || ('ontouchstart' in window && window.innerWidth < 1024));
+    if (isMobile) {
+      setVideoLoaded(false);
+      return;
+    }
+    const t = setTimeout(() => {
+      setVideoLoaded(true);
+    }, 1500);
+    return () => clearTimeout(t);
   }, []);
 
   const handleSearchSubmit = (e) => {
@@ -330,6 +163,7 @@ export default function Home() {
     setSearchTerm('');
     setSelectedArea('All');
     setSelectedBhk('All');
+    setSelectedListingType('All');
   };
 
   const activeAreasList = areas.length > 0 ? areas : [];
@@ -353,9 +187,16 @@ export default function Home() {
       : activeAreasList.map((a) => a.name))
   ];
 
-  const filteredProperties = properties.filter((p) => {
-    const isAvail = !p.status || p.status.toLowerCase() === 'available';
-    if (!isAvail) return false;
+  // Counts for listings
+  const availableProperties = properties.filter((p) => !p.status || p.status.toLowerCase() === 'available');
+  const rentCount = availableProperties.filter((p) => p.listing_type === 'rent').length;
+  const buyCount = availableProperties.filter((p) => p.listing_type === 'buy').length;
+
+  const filteredProperties = availableProperties.filter((p) => {
+    // Type Filter (All, Rent, Buy)
+    if (selectedListingType !== 'All' && p.listing_type !== selectedListingType) {
+      return false;
+    }
 
     const query = searchTerm.toLowerCase().trim();
     const matchesSearch =
@@ -392,7 +233,7 @@ export default function Home() {
       a: (
         <div className="space-y-2.5">
           <p>
-            Explore premium rental and purchase flats across Nanded with verified high-resolution imagery, floor plans, and verified carpet area. Filter effortlessly by locality (Zenda Chowk, Chhatrapati Chowk, Vazirabad, Taroda Naka), BHK size, and budget tier.
+            Explore verified rental and purchase flats across Nanded with genuine high-resolution imagery, floor plans, and verified carpet area. Filter effortlessly by locality (Zenda Chowk, Chhatrapati Chowk, Vazirabad, Taroda Naka), BHK size, and budget tier.
           </p>
           <div className="flex items-center gap-2 pt-1 flex-wrap">
             <Link to="/rent" className="text-xs font-bold text-blue-900 bg-blue-100 hover:bg-blue-200 px-3 py-1 rounded-lg transition inline-flex items-center gap-1">
@@ -473,130 +314,66 @@ export default function Home() {
     }
   ];
 
+  const hasActiveFilters = searchTerm || selectedArea !== 'All' || selectedBhk !== 'All' || selectedListingType !== 'All';
+
   return (
     <div className="space-y-12 sm:space-y-16 pb-16">
-      {/* 1. CINEMATIC FULL-SCREEN PROPERTY VIDEO / IMAGE HERO */}
-      <section id="hero-section" className="relative min-h-[92vh] sm:min-h-screen flex items-center justify-center text-white overflow-hidden pt-16 sm:pt-24 pb-14 sm:pb-12">
-        {/* Full-screen Background Video & Fallback Image */}
+      {/* 1. CINEMATIC PROPERTY VIDEO / IMAGE HERO */}
+      <section id="hero-section" className="relative min-h-[62vh] sm:min-h-[75vh] lg:min-h-[82vh] flex items-center justify-center text-white overflow-hidden pt-16 sm:pt-20 pb-12 sm:pb-14 bg-slate-950">
+        {/* Background Visual Backdrop: Fast Instant Poster for Zero Mobile Lag */}
         <div className="absolute inset-0 w-full h-full overflow-hidden z-0">
-          <video
-            ref={videoRef}
-            src={getAssetUrl('/tour/full-tour-merged.mp4')}
-            poster={getAssetUrl('/tour/1.jpg')}
-            autoPlay
-            loop
-            muted
-            playsInline
-            preload="metadata"
-            className="w-full h-full object-cover object-center pointer-events-none transform-gpu"
-            style={{ transform: 'translate3d(0, 0, 0)', willChange: 'transform' }}
+          <div 
+            className="absolute inset-0 bg-cover bg-center filter brightness-110 contrast-105 saturate-110"
+            style={{ 
+              backgroundImage: `url(${getAssetUrl('/tour/1.jpg')})`,
+              opacity: 0.95
+            }}
           />
-          {/* Light cinematic overlay so the video stays bright, luminous, and clear */}
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/75 via-black/25 to-slate-950/35" />
+          {videoLoaded && (
+            <video
+              ref={videoRef}
+              src={getAssetUrl('/tour/full-tour-merged.mp4')}
+              poster={getAssetUrl('/tour/1.jpg')}
+              autoPlay
+              loop
+              muted
+              playsInline
+              preload="none"
+              className="w-full h-full object-cover object-center pointer-events-none transform-gpu animate-in fade-in duration-500 filter brightness-[1.14] contrast-[1.04] saturate-[1.12]"
+            />
+          )}
+          {/* Subtle light vignette scrim so the visual stays bright & vivid while text remains sharp */}
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/45 via-black/10 to-slate-950/20" />
         </div>
 
         {/* Minimal Hero UI Layered Directly on Top */}
-        <div className="max-w-4xl mx-auto text-center relative z-10 px-4 sm:px-6 lg:px-8 space-y-3.5 sm:space-y-6 w-full pt-1 sm:pt-6">
+        <div className="max-w-4xl mx-auto text-center relative z-10 px-4 sm:px-6 lg:px-8 space-y-3.5 sm:space-y-5 w-full pt-2 sm:pt-4">
           {/* Minimal Typography with high-contrast drop shadows */}
-          <div className="space-y-1.5 sm:space-y-2">
-            <h1 className="text-3xl sm:text-5xl lg:text-7xl font-extrabold tracking-tight text-white font-serif drop-shadow-[0_2px_10px_rgba(0,0,0,0.85)] leading-tight">
+          <div className="space-y-1 sm:space-y-1.5">
+            <h1 className="text-2xl sm:text-5xl lg:text-7xl font-extrabold tracking-tight text-white font-serif drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)] leading-tight">
               VEDIKA BROKERS
             </h1>
-            <p className="text-xs sm:text-base lg:text-xl text-slate-100 font-medium tracking-wide max-w-md mx-auto drop-shadow-[0_1px_5px_rgba(0,0,0,0.85)]">
+            <p className="text-xs sm:text-base lg:text-xl text-slate-100 font-medium tracking-wide max-w-md mx-auto drop-shadow-[0_1px_6px_rgba(0,0,0,0.9)]">
               Find a place that feels like home.
             </p>
           </div>
 
-          {/* Prominent High-Clarity Action Buttons: BUY & RENT with Left-to-Right Parda Animation */}
-          <div className="flex items-center justify-center gap-2.5 sm:gap-5 pt-0.5 max-w-[280px] sm:max-w-md mx-auto w-full">
+          {/* Action Buttons: BUY & RENT (Clean, Static, Instant - Zero Right-to-Left or Sliding Animation) */}
+          <div className="flex items-center justify-center gap-3 sm:gap-4 pt-0.5 max-w-[290px] sm:max-w-md mx-auto w-full">
             <Link
               to="/buy"
-              onClick={(e) => handleHeroNavClick(e, '/buy', 'buy')}
-              className={`relative group overflow-hidden flex-1 py-3 sm:py-3.5 px-4 sm:px-6 rounded-2xl bg-amber-400 hover:bg-amber-300 active:bg-amber-500 font-black text-xs sm:text-base shadow-[0_8px_25px_rgba(245,158,11,0.35)] hover:shadow-[0_12px_30px_rgba(245,158,11,0.55)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 flex items-center justify-center border border-amber-300 select-none ${
-                animatingBtn === 'buy' ? 'scale-95 shadow-amber-500/60 ring-2 ring-amber-400/80' : ''
-              }`}
+              className="flex-1 py-2.5 sm:py-3.5 px-4 sm:px-6 rounded-xl sm:rounded-2xl bg-amber-400 hover:bg-amber-300 active:bg-amber-500 font-black text-xs sm:text-base text-slate-950 shadow-md flex items-center justify-center gap-2 border border-amber-300 cursor-pointer"
             >
-              {/* Left-to-Right Parda (Curtain) Sheet with Glowing Leading Edge */}
-              <span
-                className={`absolute inset-0 bg-gradient-to-r from-blue-950 via-slate-900 to-slate-950 border-r-2 border-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.9)] transition-transform duration-300 ease-out pointer-events-none z-0 ${
-                  animatingBtn === 'buy' ? 'translate-x-0' : '-translate-x-full'
-                }`}
-              />
-
-              {/* Shimmer light sweep animation */}
-              <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/50 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out pointer-events-none z-0" />
-
-              {/* Elements sliding in sequential order from left to right like a curtain */}
-              <div className="relative z-10 flex items-center justify-center gap-2">
-                <Building2
-                  className={`w-4 h-4 sm:w-5 sm:h-5 transition-all duration-250 ease-out ${
-                    animatingBtn === 'buy'
-                      ? 'translate-x-2 text-amber-400 scale-110'
-                      : 'text-slate-950 group-hover:scale-110'
-                  }`}
-                />
-                <span
-                  className={`tracking-wider text-xs sm:text-base transition-all duration-280 delay-50 ease-out ${
-                    animatingBtn === 'buy'
-                      ? 'translate-x-4 sm:translate-x-8 text-white font-black tracking-widest'
-                      : 'text-slate-950 font-black'
-                  }`}
-                >
-                  BUY
-                </span>
-                <ArrowRight
-                  className={`w-3.5 h-3.5 sm:w-4 sm:h-4 transition-all duration-300 delay-100 ease-out ${
-                    animatingBtn === 'buy'
-                      ? 'translate-x-6 sm:translate-x-12 scale-125 text-amber-400'
-                      : 'text-slate-950/70 group-hover:translate-x-1'
-                  }`}
-                />
-              </div>
+              <Building2 className="w-4 h-4 sm:w-5 sm:h-5 text-slate-950 shrink-0" />
+              <span className="tracking-wider">BUY</span>
             </Link>
 
             <Link
               to="/rent"
-              onClick={(e) => handleHeroNavClick(e, '/rent', 'rent')}
-              className={`relative group overflow-hidden flex-1 py-3 sm:py-3.5 px-4 sm:px-6 rounded-2xl bg-white hover:bg-slate-100 active:bg-slate-200 font-black text-xs sm:text-base shadow-[0_8px_25px_rgba(255,255,255,0.25)] hover:shadow-[0_12px_30px_rgba(255,255,255,0.4)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 flex items-center justify-center border border-white select-none ${
-                animatingBtn === 'rent' ? 'scale-95 shadow-white/60 ring-2 ring-white/80' : ''
-              }`}
+              className="flex-1 py-2.5 sm:py-3.5 px-4 sm:px-6 rounded-xl sm:rounded-2xl bg-white hover:bg-slate-100 active:bg-slate-200 font-black text-xs sm:text-base text-slate-950 shadow-md flex items-center justify-center gap-2 border border-white cursor-pointer"
             >
-              {/* Left-to-Right Parda (Curtain) Sheet with Glowing Leading Edge */}
-              <span
-                className={`absolute inset-0 bg-gradient-to-r from-slate-950 via-blue-950 to-slate-900 border-r-2 border-white shadow-[0_0_15px_rgba(255,255,255,0.9)] transition-transform duration-300 ease-out pointer-events-none z-0 ${
-                  animatingBtn === 'rent' ? 'translate-x-0' : '-translate-x-full'
-                }`}
-              />
-
-              {/* Shimmer light sweep animation */}
-              <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-slate-200/60 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out pointer-events-none z-0" />
-
-              {/* Elements sliding in sequential order from left to right like a curtain */}
-              <div className="relative z-10 flex items-center justify-center gap-2">
-                <Key
-                  className={`w-4 h-4 sm:w-5 sm:h-5 transition-all duration-250 ease-out ${
-                    animatingBtn === 'rent'
-                      ? 'translate-x-2 rotate-[20deg] text-amber-400 scale-110'
-                      : 'text-slate-950 group-hover:rotate-[15deg] group-hover:scale-110'
-                  }`}
-                />
-                <span
-                  className={`tracking-wider text-xs sm:text-base transition-all duration-280 delay-50 ease-out ${
-                    animatingBtn === 'rent'
-                      ? 'translate-x-4 sm:translate-x-8 text-white font-black tracking-widest'
-                      : 'text-slate-950 font-black'
-                  }`}
-                >
-                  RENT
-                </span>
-                <ArrowRight
-                  className={`w-3.5 h-3.5 sm:w-4 sm:h-4 transition-all duration-300 delay-100 ease-out ${
-                    animatingBtn === 'rent'
-                      ? 'translate-x-6 sm:translate-x-12 scale-125 text-white'
-                      : 'text-slate-950/70 group-hover:translate-x-1'
-                  }`}
-                />
-              </div>
+              <Key className="w-4 h-4 sm:w-5 sm:h-5 text-slate-950 shrink-0" />
+              <span className="tracking-wider">RENT</span>
             </Link>
           </div>
 
@@ -627,88 +404,242 @@ export default function Home() {
 
             <button
               type="submit"
-              className="px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs sm:text-sm shadow-md hover:scale-105 active:scale-95 transition-all duration-200 flex items-center justify-center gap-1.5 shrink-0"
+              className="px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs sm:text-sm shadow-md transition flex items-center justify-center gap-1.5 shrink-0 cursor-pointer"
             >
               <span>Search</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </form>
 
-          {/* Quick Locality Infinite Continuous Loop Ribbon with Sliding & Selection Controls */}
+          {/* Quick Locality Ribbon */}
           <HeroLocationSlider 
             popularAreas={popularAreas} 
             selectedArea={selectedArea} 
             onAreaSelect={handleAreaSelect} 
           />
+
+          {/* Direct Instant Scroll Jump to Listings */}
+          <div className="pt-0.5">
+            <button
+              type="button"
+              onClick={() => {
+                const el = document.getElementById('properties-section');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="inline-flex items-center gap-1.5 text-[11px] font-bold text-amber-300 hover:text-white bg-slate-950/60 hover:bg-slate-900/80 px-3 py-1 rounded-full border border-white/15 backdrop-blur-md transition shadow cursor-pointer"
+            >
+              <span>Browse Properties Below</span>
+              <ChevronDown className="w-3 h-3 text-amber-400 animate-bounce" />
+            </button>
+          </div>
         </div>
       </section>
 
-      {/* 2. FEATURED PROPERTIES GRID (ANCHOR FOR SEARCH) */}
-      <section id="properties-section" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 scroll-mt-20">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3 pb-3 border-b border-slate-200">
-          <div>
-            <div className="flex items-center gap-2 text-xs font-bold text-blue-900 uppercase tracking-wider mb-1">
-              <Building2 className="w-4 h-4 text-amber-500" />
-              <span>{selectedArea === 'All' ? 'Property Listings' : `Properties in ${selectedArea}`}</span>
-              <span className="bg-blue-100 text-blue-900 px-2 py-0.5 rounded-full text-[11px] font-bold">
-                {filteredProperties.length} Available
-              </span>
+      {/* 2. VALUE PROPOSITION & TRUST ASSURANCE STRIP (Directly Below Hero) */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6 sm:-mt-8 relative z-20">
+        <div className="bg-white/95 backdrop-blur-xl rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-xl p-4 sm:p-5 grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 divide-y sm:divide-y-0 lg:divide-x divide-slate-100">
+          <div className="flex items-center gap-3.5 p-1.5">
+            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-amber-50 border border-amber-200/80 flex items-center justify-center text-amber-600 shrink-0 shadow-xs">
+              <ShieldCheck className="w-5 h-5 stroke-[2.2]" />
             </div>
-            <div className="flex items-center gap-3 flex-wrap">
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 font-serif">
-                {selectedArea === 'All' ? 'Featured Properties' : `Available in ${selectedArea}`}
-              </h2>
-              {selectedArea !== 'All' && (
-                <button
-                  onClick={() => setSelectedArea('All')}
-                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 hover:bg-amber-200 transition"
-                  title="Clear area filter"
-                >
-                  <span>Area: {selectedArea}</span>
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              )}
+            <div>
+              <h4 className="text-xs sm:text-sm font-bold text-slate-900 leading-snug">100% Verified</h4>
+              <p className="text-[11px] text-slate-500">Physical inspection in Nanded</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-            <Link
-              to={selectedArea !== 'All' ? `/rent?area=${encodeURIComponent(selectedArea)}` : '/rent'}
-              className="text-xs font-bold text-blue-900 hover:text-amber-600 flex items-center gap-1 transition bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-xl border border-blue-200"
+          <div className="flex items-center gap-3.5 p-1.5 pt-3 sm:pt-1.5">
+            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-blue-50 border border-blue-200/80 flex items-center justify-center text-blue-900 shrink-0 shadow-xs">
+              <MapPin className="w-5 h-5 stroke-[2.2]" />
+            </div>
+            <div>
+              <h4 className="text-xs sm:text-sm font-bold text-slate-900 leading-snug">Prime Localities</h4>
+              <p className="text-[11px] text-slate-500">Zenda Chowk, Vazirabad & Cidco</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3.5 p-1.5 pt-3 sm:pt-1.5">
+            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-emerald-50 border border-emerald-200/80 flex items-center justify-center text-emerald-600 shrink-0 shadow-xs">
+              <CheckCircle2 className="w-5 h-5 stroke-[2.2]" />
+            </div>
+            <div>
+              <h4 className="text-xs sm:text-sm font-bold text-slate-900 leading-snug">₹500 Visit Refund</h4>
+              <p className="text-[11px] text-slate-500">Guaranteed UPI refund in 24h</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3.5 p-1.5 pt-3 sm:pt-1.5">
+            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-purple-50 border border-purple-200/80 flex items-center justify-center text-purple-700 shrink-0 shadow-xs">
+              <Phone className="w-5 h-5 stroke-[2.2]" />
+            </div>
+            <div>
+              <h4 className="text-xs sm:text-sm font-bold text-slate-900 leading-snug">Direct Broker Desk</h4>
+              <p className="text-[11px] text-slate-500">Swapnil Navghare (+91 93701 48697)</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 3. FEATURED PROPERTIES EXPLORER & SMART FILTER TOOLBAR */}
+      <section id="properties-section" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 scroll-mt-20">
+        {/* Section Header */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 pb-4 border-b border-slate-200/90">
+          <div>
+            <div className="flex items-center gap-2 text-xs font-bold text-blue-900 uppercase tracking-wider mb-1.5">
+              <Sparkles className="w-4 h-4 text-amber-500" />
+              <span>Verified Properties in Nanded</span>
+              <span className="bg-blue-100 text-blue-900 px-2 py-0.5 rounded-full text-[11px] font-black">
+                {filteredProperties.length} Available
+              </span>
+            </div>
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 font-serif tracking-tight">
+              Featured Properties
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-xl">
+              Authentic photos, verified carpet area, transparent pricing, and zero fake listings.
+            </p>
+          </div>
+
+          {/* Quick Segmented Listing Type Tabs: All | For Rent | For Sale */}
+          <div className="flex items-center bg-slate-100 p-1 rounded-2xl border border-slate-200 self-stretch sm:self-auto shrink-0">
+            <button
+              type="button"
+              onClick={() => setSelectedListingType('All')}
+              className={`flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                selectedListingType === 'All'
+                  ? 'bg-white text-slate-900 shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
             >
-              <span>Explore Rent Catalog</span> <ChevronRight className="w-3.5 h-3.5" />
-            </Link>
-            <Link
-              to={selectedArea !== 'All' ? `/buy?area=${encodeURIComponent(selectedArea)}` : '/buy'}
-              className="text-xs font-bold text-emerald-800 hover:text-emerald-900 flex items-center gap-1 transition bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-xl border border-emerald-200"
+              All ({availableProperties.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectedListingType('rent')}
+              className={`flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                selectedListingType === 'rent'
+                  ? 'bg-blue-900 text-white shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
             >
-              <span>Explore Buy Catalog</span> <ChevronRight className="w-3.5 h-3.5" />
-            </Link>
+              Rent ({rentCount})
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectedListingType('buy')}
+              className={`flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                selectedListingType === 'buy'
+                  ? 'bg-amber-400 text-slate-950 font-black shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              Buy ({buyCount})
+            </button>
+          </div>
+        </div>
+
+        {/* Clean Filter Chips Bar */}
+        <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-3 sm:p-4 rounded-2xl border border-slate-200/80 shadow-xs">
+          {/* BHK Filter Chips */}
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+            <span className="text-xs font-bold text-slate-500 mr-1 flex items-center gap-1">
+              <SlidersHorizontal className="w-3.5 h-3.5" /> BHK:
+            </span>
+            {['All', '1 BHK', '2 BHK', '3 BHK', '4 BHK+'].map((bhk) => (
+              <button
+                key={bhk}
+                type="button"
+                onClick={() => setSelectedBhk(bhk)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  selectedBhk === bhk
+                    ? 'bg-blue-950 text-white shadow-xs'
+                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                }`}
+              >
+                {bhk}
+              </button>
+            ))}
+          </div>
+
+          {/* Active Filter Tags & Reset */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {selectedArea !== 'All' && (
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-xl text-xs font-bold bg-amber-100 text-amber-900 border border-amber-200">
+                <MapPin className="w-3 h-3 text-amber-700" />
+                <span>{selectedArea}</span>
+                <button
+                  type="button"
+                  onClick={() => setSelectedArea('All')}
+                  className="hover:text-amber-950 p-0.5"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            )}
+
+            {searchTerm && (
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-xl text-xs font-bold bg-blue-100 text-blue-900 border border-blue-200">
+                <span>"{searchTerm}"</span>
+                <button
+                  type="button"
+                  onClick={() => setSearchTerm('')}
+                  className="hover:text-blue-950 p-0.5"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            )}
+
+            {hasActiveFilters && (
+              <button
+                type="button"
+                onClick={handleResetFilters}
+                className="text-xs font-bold text-red-600 hover:text-red-700 hover:underline px-2 py-1 cursor-pointer"
+              >
+                Reset All Filters
+              </button>
+            )}
+
+            <div className="hidden sm:flex items-center gap-2 ml-auto">
+              <Link
+                to="/rent"
+                className="text-xs font-bold text-blue-900 hover:text-blue-800 transition flex items-center gap-1 bg-blue-50 px-3 py-1.5 rounded-xl border border-blue-200"
+              >
+                <span>Full Rent Catalog</span> <ChevronRight className="w-3.5 h-3.5" />
+              </Link>
+              <Link
+                to="/buy"
+                className="text-xs font-bold text-emerald-800 hover:text-emerald-900 transition flex items-center gap-1 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200"
+              >
+                <span>Full Buy Catalog</span> <ChevronRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
           </div>
         </div>
 
         {/* Listings Grid */}
         {filteredProperties.length === 0 ? (
-          <div className="bg-white rounded-3xl p-10 sm:p-14 text-center border border-slate-200 space-y-3">
+          <div className="bg-white rounded-3xl p-10 sm:p-14 text-center border border-slate-200 space-y-3 shadow-xs">
             <Building2 className="w-12 h-12 text-slate-300 mx-auto" />
             <h3 className="text-lg font-bold text-slate-800">
-              No properties currently listed in {selectedArea === 'All' ? 'this filter' : selectedArea}
+              No properties found matching your criteria
             </h3>
             <p className="text-xs text-slate-500 max-w-md mx-auto">
-              We frequently onboard verified properties across Nanded. You can reset filters or contact our broker directly.
+              We frequently onboard verified properties across Nanded. Try adjusting your filters or reach out to our broker desk directly.
             </p>
             <div className="pt-2 flex items-center justify-center gap-3">
               <button
+                type="button"
                 onClick={handleResetFilters}
-                className="bg-blue-950 hover:bg-blue-900 text-amber-400 text-xs font-bold px-5 py-2.5 rounded-xl shadow transition"
+                className="bg-blue-950 hover:bg-blue-900 text-amber-400 text-xs font-bold px-5 py-2.5 rounded-xl shadow transition cursor-pointer"
               >
-                Show All Areas
+                Reset All Filters
               </button>
               <Link
                 to="/contact"
                 className="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold px-4 py-2.5 rounded-xl transition"
               >
-                Inquire Directly
+                Contact Broker
               </Link>
             </div>
           </div>
@@ -721,73 +652,157 @@ export default function Home() {
         )}
       </section>
 
-      {/* 3. DIRECT BROKER DESK (COMPACT EXECUTIVE SPOTLIGHT) */}
+      {/* 4. HOW VEDIKA BROKERS WORKS (Luxury Feature Section with High-Resolution Architecture Backgrounds) */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 text-white p-5 sm:p-7 lg:p-8 border border-blue-900/60 shadow-xl">
-          {/* Subtle decorative glow accents */}
-          <div className="absolute top-0 right-0 w-72 h-72 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-72 h-72 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="relative overflow-hidden rounded-3xl p-6 sm:p-10 lg:p-12 shadow-2xl border border-slate-300/80 space-y-8">
+          {/* Outside Container Background Image - Modern Glass Villa Architectural Design */}
+          <img
+            src="/modern_glass_villa.jpg"
+            onError={(e) => {
+              e.currentTarget.src = "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=1920&q=85";
+            }}
+            alt="Vedika Brokers Modern Architecture"
+            className="absolute inset-0 w-full h-full object-cover object-center pointer-events-none select-none"
+            loading="lazy"
+          />
 
-          <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center">
+          {/* Section Header */}
+          <div className="relative z-10 text-center max-w-2xl mx-auto space-y-2.5">
+            <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-blue-950/85 border border-amber-400 text-amber-300 text-[11px] font-bold uppercase tracking-wider shadow-lg">
+              <span>Simple, Transparent & Reliable</span>
+            </div>
+            <h3 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold font-serif text-white drop-shadow-[0_2px_6px_rgba(0,0,0,1)] drop-shadow-[0_4px_24px_rgba(0,0,0,0.95)]">
+              How Vedika Brokers Works
+            </h3>
+            <p className="text-xs sm:text-sm text-white font-semibold drop-shadow-[0_2px_8px_rgba(0,0,0,1)]">
+              We eliminated the stress of broker calls and fake listings with a crystal-clear, verified process.
+            </p>
+          </div>
+
+          {/* 3 Steps - Ultra-Transparent Frosted Blue Glass Containers with White Text */}
+          <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-5 lg:gap-6 max-w-6xl mx-auto pt-2 sm:pt-4">
+            
+            {/* Step 01 */}
+            <div className="space-y-3 p-5 sm:p-6 rounded-2xl bg-blue-950/20 backdrop-blur-sm border border-white/25 shadow-xl hover:border-amber-400/80 transition-all duration-300 hover:-translate-y-1">
+              <div className="flex items-center justify-between">
+                <span className="px-3 py-1 rounded-full bg-slate-900/80 text-amber-300 border border-amber-400/60 font-black text-xs tracking-wider shadow-sm">
+                  Step 01
+                </span>
+                <div className="w-8 h-8 rounded-full bg-slate-900/80 text-amber-400 flex items-center justify-center shadow-sm border border-white/20">
+                  <Search className="w-4 h-4" />
+                </div>
+              </div>
+              <h4 className="text-base sm:text-lg font-bold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,1)] drop-shadow-[0_4px_16px_rgba(0,0,0,0.9)]">
+                Explore Verified Flats
+              </h4>
+              <p className="text-xs sm:text-sm text-white font-medium leading-relaxed drop-shadow-[0_1px_4px_rgba(0,0,0,1)]">
+                Browse hand-verified homes across Nanded with genuine photographs, exact carpet area, and transparent pricing.
+              </p>
+            </div>
+
+            {/* Step 02 */}
+            <div className="space-y-3 p-5 sm:p-6 rounded-2xl bg-blue-950/20 backdrop-blur-sm border border-white/25 shadow-xl hover:border-amber-400/80 transition-all duration-300 hover:-translate-y-1">
+              <div className="flex items-center justify-between">
+                <span className="px-3 py-1 rounded-full bg-slate-900/80 text-amber-300 border border-amber-400/60 font-black text-xs tracking-wider shadow-sm">
+                  Step 02
+                </span>
+                <div className="w-8 h-8 rounded-full bg-slate-900/80 text-amber-400 flex items-center justify-center shadow-sm border border-white/20">
+                  <Key className="w-4 h-4" />
+                </div>
+              </div>
+              <h4 className="text-base sm:text-lg font-bold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,1)] drop-shadow-[0_4px_16px_rgba(0,0,0,0.9)]">
+                Unlock & Visit Society
+              </h4>
+              <p className="text-xs sm:text-sm text-white font-medium leading-relaxed drop-shadow-[0_1px_4px_rgba(0,0,0,1)]">
+                Pay ₹1,000 to unlock the exact building address and schedule an accompanied in-person walkthrough at your convenience.
+              </p>
+            </div>
+
+            {/* Step 03 */}
+            <div className="space-y-3 p-5 sm:p-6 rounded-2xl bg-blue-950/20 backdrop-blur-sm border border-white/25 shadow-xl hover:border-amber-400/80 transition-all duration-300 hover:-translate-y-1">
+              <div className="flex items-center justify-between">
+                <span className="px-3 py-1 rounded-full bg-slate-900/80 text-amber-300 border border-amber-400/60 font-black text-xs tracking-wider shadow-sm">
+                  Step 03
+                </span>
+                <div className="w-8 h-8 rounded-full bg-slate-900/80 text-amber-400 flex items-center justify-center shadow-sm border border-white/20">
+                  <CheckCircle2 className="w-4 h-4" />
+                </div>
+              </div>
+              <h4 className="text-base sm:text-lg font-bold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,1)] drop-shadow-[0_4px_16px_rgba(0,0,0,0.9)]">
+                Move In or Get ₹500 Refund
+              </h4>
+              <p className="text-xs sm:text-sm text-white font-medium leading-relaxed drop-shadow-[0_1px_4px_rgba(0,0,0,1)]">
+                Finalized the deal? Move in hassle-free. Decided not to proceed? ₹500 is credited straight back to your UPI within 24 hours.
+              </p>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* 5. DIRECT BROKER DESK (Swapnil Navghare Spotlight) */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-white text-slate-900 p-6 sm:p-8 lg:p-10 border border-slate-200/90 shadow-xl">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-center">
             {/* Left Column: Heading, description & credibility badges */}
-            <div className="lg:col-span-7 space-y-3 sm:space-y-3.5 text-center lg:text-left">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-400/10 border border-amber-400/30 text-amber-400 text-[11px] font-bold uppercase tracking-wider backdrop-blur-md">
-                <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
+            <div className="lg:col-span-7 space-y-3.5 text-center lg:text-left">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-950 text-[11px] font-bold uppercase tracking-wider">
+                <ShieldCheck className="w-3.5 h-3.5 text-blue-900" />
                 <span>Direct Broker Desk</span>
               </div>
 
-              <h3 className="text-xl sm:text-2xl lg:text-3xl font-extrabold font-serif tracking-tight text-white leading-tight">
-                Have questions or want to list your property?
+              <h3 className="text-2xl sm:text-3xl font-extrabold font-serif tracking-tight text-slate-900 leading-tight">
+                Have questions or looking to list your property?
               </h3>
 
-              <p className="text-xs sm:text-sm text-slate-300 font-normal leading-relaxed max-w-xl mx-auto lg:mx-0">
-                Connect directly with <strong className="text-white font-semibold">Swapnil Navghare</strong> for fast, transparent, and personalized assistance across Nanded's prime residential hubs.
+              <p className="text-xs sm:text-sm text-slate-600 font-normal leading-relaxed max-w-xl mx-auto lg:mx-0">
+                Connect directly with <strong className="text-slate-900 font-bold">Swapnil Navghare</strong> for fast, transparent, and personalized property guidance across Nanded's prime residential hubs.
               </p>
 
               {/* Verified Trust Badges */}
-              <div className="pt-1 flex flex-wrap items-center justify-center lg:justify-start gap-2 sm:gap-2.5 text-[11px] font-semibold text-slate-300">
-                <div className="flex items-center gap-1.5 bg-white/5 border border-white/10 px-2.5 py-1 rounded-lg">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+              <div className="pt-1 flex flex-wrap items-center justify-center lg:justify-start gap-2.5 text-[11px] font-semibold text-slate-600">
+                <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-3 py-1 rounded-lg">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                   <span>RERA Verified Broker Partner</span>
                 </div>
-                <div className="flex items-center gap-1.5 bg-white/5 border border-white/10 px-2.5 py-1 rounded-lg">
-                  <Clock className="w-3.5 h-3.5 text-amber-400" />
+                <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-3 py-1 rounded-lg">
+                  <Clock className="w-3.5 h-3.5 text-amber-500" />
                   <span>Fast Response (&lt; 15 mins)</span>
                 </div>
-                <div className="flex items-center gap-1.5 bg-white/5 border border-white/10 px-2.5 py-1 rounded-lg">
-                  <MapPin className="w-3.5 h-3.5 text-blue-400" />
+                <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-3 py-1 rounded-lg">
+                  <MapPin className="w-3.5 h-3.5 text-blue-600" />
                   <span>Local Nanded Expert</span>
                 </div>
               </div>
             </div>
 
             {/* Right Column: Broker Card with Action Buttons */}
-            <div className="lg:col-span-5 bg-white/10 backdrop-blur-md border border-white/15 p-4 sm:p-5 rounded-2xl shadow-lg space-y-3.5">
-              <div className="flex items-center gap-3">
+            <div className="lg:col-span-5 bg-slate-50 border border-slate-200/90 p-5 sm:p-6 rounded-2xl shadow-sm space-y-4">
+              <div className="flex items-center gap-3.5">
                 <div className="relative">
-                  <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-300 text-slate-950 font-black text-base sm:text-lg flex items-center justify-center shadow-md">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-300 text-slate-950 font-black text-lg flex items-center justify-center shadow-md">
                     SN
                   </div>
-                  <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 border-2 border-slate-900 rounded-full" title="Online for inquiries" />
+                  <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full" title="Online for inquiries" />
                 </div>
 
                 <div>
                   <div className="flex items-center gap-2">
-                    <h4 className="text-sm sm:text-base font-bold text-white leading-snug">Swapnil Navghare</h4>
-                    <span className="bg-emerald-500/20 text-emerald-300 text-[9px] font-bold px-1.5 py-0.5 rounded-full border border-emerald-500/30">
+                    <h4 className="text-sm sm:text-base font-bold text-slate-900 leading-snug">Swapnil Navghare</h4>
+                    <span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-200">
                       Verified
                     </span>
                   </div>
-                  <p className="text-[11px] text-slate-300">Principal Broker & Consultant</p>
-                  <p className="text-[10px] text-amber-400/90 font-mono">Vedika Brokers • Nanded Desk</p>
+                  <p className="text-[11px] text-slate-500">Principal Broker & Consultant</p>
+                  <p className="text-[10px] text-amber-600 font-mono font-bold">Vedika Brokers • Nanded Desk</p>
                 </div>
               </div>
 
               {/* Primary Call & WhatsApp Actions */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-0.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
                 <a
                   href="tel:+919370148697"
-                  className="py-2.5 px-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs shadow-md shadow-amber-400/20 hover:scale-[1.02] active:scale-[0.98] transition flex items-center justify-center gap-1.5"
+                  className="py-2.5 px-3 rounded-xl bg-blue-950 hover:bg-blue-900 text-amber-400 font-black text-xs shadow-md hover:scale-[1.02] active:scale-[0.98] transition flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <Phone className="w-3.5 h-3.5 stroke-[2.5]" />
                   <span>Call Broker</span>
@@ -797,7 +812,7 @@ export default function Home() {
                   href="https://wa.me/919370148697?text=Hello%20Swapnil%20Navghare,%20I%20am%20looking%20for%20property%20assistance%20in%20Nanded."
                   target="_blank"
                   rel="noreferrer"
-                  className="py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md hover:scale-[1.02] active:scale-[0.98] transition flex items-center justify-center gap-1.5"
+                  className="py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md hover:scale-[1.02] active:scale-[0.98] transition flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <MessageSquare className="w-3.5 h-3.5" />
                   <span>WhatsApp</span>
@@ -805,9 +820,9 @@ export default function Home() {
               </div>
 
               {/* Consultation availability note */}
-              <div className="pt-2 border-t border-white/10 text-center">
-                <p className="text-[10px] text-slate-400">
-                  Open Mon - Sun: 9:00 AM – 8:30 PM • Zero Obligation Consultation
+              <div className="pt-2 border-t border-slate-200 text-center">
+                <p className="text-[10px] text-slate-500">
+                  Open Mon - Sun: 9:00 AM – 8:30 PM • 100% Free Consultation
                 </p>
               </div>
             </div>
@@ -815,9 +830,9 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 4. COMPACT SPACE-EFFICIENT FAQS */}
+      {/* 6. STREAMLINED SPACE-EFFICIENT FAQS */}
       <section id="faqs" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 scroll-mt-20">
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-8 lg:p-10">
+        <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 sm:p-8 lg:p-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-start">
             {/* Left Column: Compact Header & Direct Contact */}
             <div className="lg:col-span-5 space-y-3 lg:sticky lg:top-24">
@@ -876,7 +891,7 @@ export default function Home() {
                       <button
                         type="button"
                         onClick={() => setOpenFaq(isOpen ? null : index)}
-                        className="w-full py-3.5 px-4 sm:px-5 text-left font-bold text-xs sm:text-sm text-slate-900 flex justify-between items-center gap-3 transition"
+                        className="w-full py-3.5 px-4 sm:px-5 text-left font-bold text-xs sm:text-sm text-slate-900 flex justify-between items-center gap-3 transition cursor-pointer"
                       >
                         <span className="flex items-center gap-2.5">
                           <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black shrink-0 transition-colors ${

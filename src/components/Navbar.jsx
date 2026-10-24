@@ -75,9 +75,9 @@ export default function Navbar() {
       className={`transition-all duration-300 z-50 border-none ${
         isVideoHeroPage
           ? isScrolled
-            ? 'fixed top-0 left-0 right-0 bg-slate-950/85 backdrop-blur-md shadow-lg shadow-black/30'
-            : 'fixed top-0 left-0 right-0 bg-transparent'
-          : 'sticky top-0 bg-gradient-to-r from-blue-950 via-[#0C1A30] to-slate-900 text-white shadow-md'
+            ? 'fixed top-0 left-0 right-0 bg-slate-950/90 backdrop-blur-md shadow-xl shadow-black/40 border-b border-white/10'
+            : 'fixed top-0 left-0 right-0 bg-gradient-to-b from-slate-950/85 via-slate-950/40 to-transparent'
+          : 'sticky top-0 bg-gradient-to-r from-blue-950 via-[#0C1A30] to-slate-900 text-white shadow-md border-b border-white/10'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -93,100 +93,154 @@ export default function Navbar() {
             <img
               src={getAssetUrl('/logo-white.png')}
               alt="Vedika Brokers"
-              className="h-10 sm:h-12 w-auto object-contain transition-all duration-300 group-hover:scale-105 drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)]"
+              className="h-10 sm:h-14 lg:h-16 w-auto object-contain transition-all duration-300 group-hover:scale-105 drop-shadow-[0_2px_12px_rgba(0,0,0,0.85)]"
             />
           </Link>
 
-          {/* Desktop Nav Links - Pure Text & Icons Merged Directly with Background (NO White Boxes) */}
-          <div className="hidden md:flex items-center space-x-1 lg:space-x-3">
+          {/* Desktop Nav Links - Pure Text & Icons (NO Enclosing Container) */}
+          <div className="hidden md:flex items-center space-x-1 lg:space-x-3 bg-transparent">
             <NavLink
               to="/"
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
               className={({ isActive }) =>
-                `px-3 py-2 text-sm font-semibold transition-all duration-200 flex items-center gap-1.5 bg-transparent ${
+                `group relative px-2.5 lg:px-3.5 py-2 text-sm font-bold transition-all duration-200 flex items-center gap-1.5 bg-transparent ${
                   isActive
-                    ? 'text-amber-400 font-extrabold drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]'
-                    : 'text-white/90 hover:text-amber-300 drop-shadow-[0_1px_4px_rgba(0,0,0,0.85)]'
+                    ? 'text-amber-400 font-extrabold drop-shadow-[0_2px_8px_rgba(0,0,0,1)]'
+                    : 'text-white/95 hover:text-amber-300 drop-shadow-[0_2px_5px_rgba(0,0,0,0.95)] drop-shadow-[0_4px_12px_rgba(0,0,0,0.9)]'
                 }`
               }
             >
-              <Home className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" />
-              <span>Home</span>
+              {({ isActive }) => (
+                <>
+                  <Home className="w-4 h-4 text-amber-400 transition-transform duration-200 group-hover:scale-110 drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)]" />
+                  <span>Home</span>
+                  {isActive ? (
+                    <span className="absolute bottom-0 left-2 right-2 h-[2px] bg-amber-400 rounded-full shadow-[0_0_8px_rgba(251,191,36,0.9)]" />
+                  ) : (
+                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 group-hover:w-3/4 h-[2px] bg-amber-400/80 rounded-full transition-all duration-200" />
+                  )}
+                </>
+              )}
             </NavLink>
 
             <NavLink
               to="/rent"
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
               className={({ isActive }) =>
-                `px-3 py-2 text-sm font-semibold transition-all duration-200 flex items-center gap-1.5 bg-transparent ${
+                `group relative px-2.5 lg:px-3.5 py-2 text-sm font-bold transition-all duration-200 flex items-center gap-1.5 bg-transparent ${
                   isActive
-                    ? 'text-amber-400 font-extrabold drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]'
-                    : 'text-white/90 hover:text-amber-300 drop-shadow-[0_1px_4px_rgba(0,0,0,0.85)]'
+                    ? 'text-amber-400 font-extrabold drop-shadow-[0_2px_8px_rgba(0,0,0,1)]'
+                    : 'text-white/95 hover:text-amber-300 drop-shadow-[0_2px_5px_rgba(0,0,0,0.95)] drop-shadow-[0_4px_12px_rgba(0,0,0,0.9)]'
                 }`
               }
             >
-              <Key className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" />
-              <span>Rent</span>
+              {({ isActive }) => (
+                <>
+                  <Key className="w-4 h-4 text-amber-400 transition-transform duration-200 group-hover:scale-110 drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)]" />
+                  <span>Rent</span>
+                  {isActive ? (
+                    <span className="absolute bottom-0 left-2 right-2 h-[2px] bg-amber-400 rounded-full shadow-[0_0_8px_rgba(251,191,36,0.9)]" />
+                  ) : (
+                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 group-hover:w-3/4 h-[2px] bg-amber-400/80 rounded-full transition-all duration-200" />
+                  )}
+                </>
+              )}
             </NavLink>
 
             <NavLink
               to="/buy"
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
               className={({ isActive }) =>
-                `px-3 py-2 text-sm font-semibold transition-all duration-200 flex items-center gap-1.5 bg-transparent ${
+                `group relative px-2.5 lg:px-3.5 py-2 text-sm font-bold transition-all duration-200 flex items-center gap-1.5 bg-transparent ${
                   isActive
-                    ? 'text-amber-400 font-extrabold drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]'
-                    : 'text-white/90 hover:text-amber-300 drop-shadow-[0_1px_4px_rgba(0,0,0,0.85)]'
+                    ? 'text-amber-400 font-extrabold drop-shadow-[0_2px_8px_rgba(0,0,0,1)]'
+                    : 'text-white/95 hover:text-amber-300 drop-shadow-[0_2px_5px_rgba(0,0,0,0.95)] drop-shadow-[0_4px_12px_rgba(0,0,0,0.9)]'
                 }`
               }
             >
-              <ShoppingBag className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" />
-              <span>Buy</span>
+              {({ isActive }) => (
+                <>
+                  <ShoppingBag className="w-4 h-4 text-amber-400 transition-transform duration-200 group-hover:scale-110 drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)]" />
+                  <span>Buy</span>
+                  {isActive ? (
+                    <span className="absolute bottom-0 left-2 right-2 h-[2px] bg-amber-400 rounded-full shadow-[0_0_8px_rgba(251,191,36,0.9)]" />
+                  ) : (
+                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 group-hover:w-3/4 h-[2px] bg-amber-400/80 rounded-full transition-all duration-200" />
+                  )}
+                </>
+              )}
             </NavLink>
 
             <NavLink
               to="/compare"
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
               className={({ isActive }) =>
-                `px-3 py-2 text-sm font-semibold transition-all duration-200 flex items-center gap-1.5 bg-transparent ${
+                `group relative px-2.5 lg:px-3.5 py-2 text-sm font-bold transition-all duration-200 flex items-center gap-1.5 bg-transparent ${
                   isActive
-                    ? 'text-amber-400 font-extrabold drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]'
-                    : 'text-white/90 hover:text-amber-300 drop-shadow-[0_1px_4px_rgba(0,0,0,0.85)]'
+                    ? 'text-amber-400 font-extrabold drop-shadow-[0_2px_8px_rgba(0,0,0,1)]'
+                    : 'text-white/95 hover:text-amber-300 drop-shadow-[0_2px_5px_rgba(0,0,0,0.95)] drop-shadow-[0_4px_12px_rgba(0,0,0,0.9)]'
                 }`
               }
             >
-              <Scale className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" />
-              <span>Compare</span>
+              {({ isActive }) => (
+                <>
+                  <Scale className="w-4 h-4 text-amber-400 transition-transform duration-200 group-hover:scale-110 drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)]" />
+                  <span>Compare</span>
+                  {isActive ? (
+                    <span className="absolute bottom-0 left-2 right-2 h-[2px] bg-amber-400 rounded-full shadow-[0_0_8px_rgba(251,191,36,0.9)]" />
+                  ) : (
+                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 group-hover:w-3/4 h-[2px] bg-amber-400/80 rounded-full transition-all duration-200" />
+                  )}
+                </>
+              )}
             </NavLink>
 
             <NavLink
               to="/how-it-works"
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
               className={({ isActive }) =>
-                `px-3 py-2 text-sm font-semibold transition-all duration-200 flex items-center gap-1.5 bg-transparent ${
+                `group relative px-2.5 lg:px-3.5 py-2 text-sm font-bold transition-all duration-200 flex items-center gap-1.5 bg-transparent ${
                   isActive
-                    ? 'text-amber-400 font-extrabold drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]'
-                    : 'text-white/90 hover:text-amber-300 drop-shadow-[0_1px_4px_rgba(0,0,0,0.85)]'
+                    ? 'text-amber-400 font-extrabold drop-shadow-[0_2px_8px_rgba(0,0,0,1)]'
+                    : 'text-white/95 hover:text-amber-300 drop-shadow-[0_2px_5px_rgba(0,0,0,0.95)] drop-shadow-[0_4px_12px_rgba(0,0,0,0.9)]'
                 }`
               }
             >
-              <HelpCircle className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" />
-              <span>How It Works</span>
+              {({ isActive }) => (
+                <>
+                  <HelpCircle className="w-4 h-4 text-amber-400 transition-transform duration-200 group-hover:scale-110 drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)]" />
+                  <span>How It Works</span>
+                  {isActive ? (
+                    <span className="absolute bottom-0 left-2 right-2 h-[2px] bg-amber-400 rounded-full shadow-[0_0_8px_rgba(251,191,36,0.9)]" />
+                  ) : (
+                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 group-hover:w-3/4 h-[2px] bg-amber-400/80 rounded-full transition-all duration-200" />
+                  )}
+                </>
+              )}
             </NavLink>
 
             <NavLink
               to="/contact"
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
               className={({ isActive }) =>
-                `px-3 py-2 text-sm font-semibold transition-all duration-200 flex items-center gap-1.5 bg-transparent ${
+                `group relative px-2.5 lg:px-3.5 py-2 text-sm font-bold transition-all duration-200 flex items-center gap-1.5 bg-transparent ${
                   isActive
-                    ? 'text-amber-400 font-extrabold drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]'
-                    : 'text-white/90 hover:text-amber-300 drop-shadow-[0_1px_4px_rgba(0,0,0,0.85)]'
+                    ? 'text-amber-400 font-extrabold drop-shadow-[0_2px_8px_rgba(0,0,0,1)]'
+                    : 'text-white/95 hover:text-amber-300 drop-shadow-[0_2px_5px_rgba(0,0,0,0.95)] drop-shadow-[0_4px_12px_rgba(0,0,0,0.9)]'
                 }`
               }
             >
-              <Phone className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" />
-              <span>Contact</span>
+              {({ isActive }) => (
+                <>
+                  <Phone className="w-4 h-4 text-amber-400 transition-transform duration-200 group-hover:scale-110 drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)]" />
+                  <span>Contact</span>
+                  {isActive ? (
+                    <span className="absolute bottom-0 left-2 right-2 h-[2px] bg-amber-400 rounded-full shadow-[0_0_8px_rgba(251,191,36,0.9)]" />
+                  ) : (
+                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 group-hover:w-3/4 h-[2px] bg-amber-400/80 rounded-full transition-all duration-200" />
+                  )}
+                </>
+              )}
             </NavLink>
           </div>
 
@@ -212,7 +266,7 @@ export default function Navbar() {
                     setUserDropdownOpen(false);
                     setMobileMenuOpen(false);
                   }}
-                  className="hidden sm:flex items-center gap-1.5 px-3.5 py-1.5 sm:py-2 rounded-full bg-white/10 hover:bg-white/20 text-white font-bold text-xs sm:text-sm border border-white/20 hover:border-white/40 transition-all duration-200 backdrop-blur-xs cursor-pointer"
+                  className="hidden sm:flex items-center gap-1.5 px-3.5 py-1.5 sm:py-2 rounded-full bg-slate-950/60 hover:bg-slate-900/80 text-white font-bold text-xs sm:text-sm border border-white/20 hover:border-white/40 transition-all duration-200 backdrop-blur-md cursor-pointer shadow-md shadow-black/20"
                   title="Create a New Genuine Account"
                 >
                   <UserPlus className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-300" />
@@ -227,7 +281,7 @@ export default function Navbar() {
                     setUserDropdownOpen(!userDropdownOpen);
                     setMobileMenuOpen(false);
                   }}
-                  className="relative group flex items-center gap-1.5 sm:gap-2 px-2 sm:px-2.5 py-1.5 rounded-full transition-all duration-200 focus:outline-none bg-white/10 hover:bg-white/20 border border-white/15"
+                  className="relative group flex items-center gap-1.5 sm:gap-2 px-2.5 py-1.5 rounded-full transition-all duration-200 focus:outline-none bg-slate-950/60 hover:bg-slate-900/80 border border-white/20 backdrop-blur-md shadow-md shadow-black/20"
                   title={`Signed in as ${user.name || user.email}`}
                   aria-label="User Account Menu"
                 >
@@ -305,10 +359,10 @@ export default function Navbar() {
                   setMobileMenuOpen(!mobileMenuOpen);
                   setUserDropdownOpen(false);
                 }}
-                className="p-2 rounded-xl text-white bg-transparent hover:text-amber-300 transition-all duration-200 focus:outline-none"
+                className="p-2 sm:p-2.5 rounded-full text-white bg-slate-950/65 hover:bg-slate-900/85 border border-white/15 backdrop-blur-md hover:text-amber-300 transition-all duration-200 focus:outline-none shadow-md shadow-black/20"
                 aria-label="Toggle Navigation Menu"
               >
-                {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                {mobileMenuOpen ? <X className="w-5 h-5 sm:w-6 sm:h-6" /> : <Menu className="w-5 h-5 sm:w-6 sm:h-6" />}
               </button>
             </div>
           </div>
@@ -317,7 +371,7 @@ export default function Navbar() {
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-slate-950/95 backdrop-blur-2xl px-4 pt-3 pb-6 space-y-2 shadow-2xl animate-in slide-in-from-top duration-200">
+        <div className="md:hidden bg-slate-950/95 backdrop-blur-2xl px-4 pt-3 pb-6 space-y-2 shadow-2xl animate-in slide-in-from-top duration-200 border-b border-white/10">
           <NavLink
             to="/"
             onClick={() => {
@@ -325,14 +379,17 @@ export default function Navbar() {
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2.5 rounded-xl font-semibold transition-all bg-transparent ${
+              `flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-semibold transition-all border ${
                 isActive
-                  ? 'text-amber-400 font-bold'
-                  : 'text-slate-200 hover:text-white'
+                  ? 'bg-amber-400/15 text-amber-300 border-amber-400/35 font-bold shadow-sm'
+                  : 'text-slate-200 hover:text-white hover:bg-white/5 border-transparent'
               }`
             }
           >
-            <Home className="w-5 h-5 text-amber-400" /> Home
+            <div className="w-8 h-8 rounded-lg bg-amber-400/15 text-amber-400 flex items-center justify-center border border-amber-400/25 shrink-0">
+              <Home className="w-4 h-4" />
+            </div>
+            <span>Home</span>
           </NavLink>
           <NavLink
             to="/rent"
@@ -341,14 +398,17 @@ export default function Navbar() {
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2.5 rounded-xl font-semibold transition-all bg-transparent ${
+              `flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-semibold transition-all border ${
                 isActive
-                  ? 'text-amber-400 font-bold'
-                  : 'text-slate-200 hover:text-white'
+                  ? 'bg-amber-400/15 text-amber-300 border-amber-400/35 font-bold shadow-sm'
+                  : 'text-slate-200 hover:text-white hover:bg-white/5 border-transparent'
               }`
             }
           >
-            <Key className="w-5 h-5 text-amber-400" /> Rent Properties
+            <div className="w-8 h-8 rounded-lg bg-amber-400/15 text-amber-400 flex items-center justify-center border border-amber-400/25 shrink-0">
+              <Key className="w-4 h-4" />
+            </div>
+            <span>Rent Properties</span>
           </NavLink>
           <NavLink
             to="/buy"
@@ -357,14 +417,17 @@ export default function Navbar() {
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2.5 rounded-xl font-semibold transition-all bg-transparent ${
+              `flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-semibold transition-all border ${
                 isActive
-                  ? 'text-amber-400 font-bold'
-                  : 'text-slate-200 hover:text-white'
+                  ? 'bg-amber-400/15 text-amber-300 border-amber-400/35 font-bold shadow-sm'
+                  : 'text-slate-200 hover:text-white hover:bg-white/5 border-transparent'
               }`
             }
           >
-            <ShoppingBag className="w-5 h-5 text-amber-400" /> Buy Properties
+            <div className="w-8 h-8 rounded-lg bg-amber-400/15 text-amber-400 flex items-center justify-center border border-amber-400/25 shrink-0">
+              <ShoppingBag className="w-4 h-4" />
+            </div>
+            <span>Buy Properties</span>
           </NavLink>
           <NavLink
             to="/compare"
@@ -373,14 +436,17 @@ export default function Navbar() {
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2.5 rounded-xl font-semibold transition-all bg-transparent ${
+              `flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-semibold transition-all border ${
                 isActive
-                  ? 'text-amber-400 font-bold'
-                  : 'text-slate-200 hover:text-white'
+                  ? 'bg-amber-400/15 text-amber-300 border-amber-400/35 font-bold shadow-sm'
+                  : 'text-slate-200 hover:text-white hover:bg-white/5 border-transparent'
               }`
             }
           >
-            <Scale className="w-5 h-5 text-amber-400" /> Compare Flats
+            <div className="w-8 h-8 rounded-lg bg-amber-400/15 text-amber-400 flex items-center justify-center border border-amber-400/25 shrink-0">
+              <Scale className="w-4 h-4" />
+            </div>
+            <span>Compare Flats</span>
           </NavLink>
           <NavLink
             to="/how-it-works"
@@ -389,14 +455,17 @@ export default function Navbar() {
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2.5 rounded-xl font-semibold transition-all bg-transparent ${
+              `flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-semibold transition-all border ${
                 isActive
-                  ? 'text-amber-400 font-bold'
-                  : 'text-slate-200 hover:text-white'
+                  ? 'bg-amber-400/15 text-amber-300 border-amber-400/35 font-bold shadow-sm'
+                  : 'text-slate-200 hover:text-white hover:bg-white/5 border-transparent'
               }`
             }
           >
-            <HelpCircle className="w-5 h-5 text-amber-400" /> How It Works
+            <div className="w-8 h-8 rounded-lg bg-amber-400/15 text-amber-400 flex items-center justify-center border border-amber-400/25 shrink-0">
+              <HelpCircle className="w-4 h-4" />
+            </div>
+            <span>How It Works</span>
           </NavLink>
           <NavLink
             to="/contact"
@@ -405,14 +474,17 @@ export default function Navbar() {
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2.5 rounded-xl font-semibold transition-all bg-transparent ${
+              `flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-semibold transition-all border ${
                 isActive
-                  ? 'text-amber-400 font-bold'
-                  : 'text-slate-200 hover:text-white'
+                  ? 'bg-amber-400/15 text-amber-300 border-amber-400/35 font-bold shadow-sm'
+                  : 'text-slate-200 hover:text-white hover:bg-white/5 border-transparent'
               }`
             }
           >
-            <Phone className="w-5 h-5 text-amber-400" /> Contact Broker
+            <div className="w-8 h-8 rounded-lg bg-amber-400/15 text-amber-400 flex items-center justify-center border border-amber-400/25 shrink-0">
+              <Phone className="w-4 h-4" />
+            </div>
+            <span>Contact Broker</span>
           </NavLink>
 
           <div className="pt-3 border-t border-white/10 flex flex-col gap-2">

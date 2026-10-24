@@ -498,8 +498,10 @@ export class DataStore {
   constructor() {
     this.listeners = new Set();
     this.initStore();
+    this.lastServerTimestamp = 0;
+    this.isSyncing = false;
 
-    // Cross-tab real-time sync via BroadcastChannel & storage events
+    // Cross-tab and Cross-device real-time sync
     if (typeof window !== 'undefined') {
       try {
         this.channel = new BroadcastChannel('vb_datastore_sync');
@@ -517,7 +519,111 @@ export class DataStore {
           });
         }
       });
+
+      // Fetch latest server store on boot
+      this.syncFromServer();
+
+      // Check for updates when user focuses tab or browser becomes visible
+      window.addEventListener('focus', () => this.checkServerUpdates());
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          this.checkServerUpdates();
+        }
+      });
+
+      // Periodic lightweight server timestamp ping every 3.5s
+      setInterval(() => {
+        if (typeof document !== 'undefined' && document.hidden) return;
+        this.checkServerUpdates();
+      }, 3500);
     }
+  }
+
+  async checkServerUpdates() {
+    if (this.serverSyncDisabled || typeof window === 'undefined' || !window.fetch || this.isSyncing) return;
+    try {
+      const res = await fetch('/api/data/timestamp', { cache: 'no-store' });
+      if (!res.ok) {
+        if (res.status === 404) this.serverSyncDisabled = true;
+        return;
+      }
+      const ct = res.headers.get('content-type') || '';
+      if (!ct.includes('application/json')) {
+        this.serverSyncDisabled = true;
+        return;
+      }
+      const json = await res.json();
+      if (json && json.timestamp && json.timestamp > (this.lastServerTimestamp || 0)) {
+        await this.syncFromServer();
+      }
+    } catch (_) {}
+  }
+
+  async syncFromServer() {
+    if (this.serverSyncDisabled || typeof window === 'undefined' || !window.fetch) return;
+    this.isSyncing = true;
+    try {
+      const res = await fetch('/api/data', { cache: 'no-store' });
+      if (!res.ok) {
+        if (res.status === 404) this.serverSyncDisabled = true;
+        return;
+      }
+      const ct = res.headers.get('content-type') || '';
+      if (!ct.includes('application/json')) {
+        this.serverSyncDisabled = true;
+        return;
+      }
+      const text = await res.text();
+      let json;
+      try {
+        json = JSON.parse(text);
+      } catch (_) {
+        this.serverSyncDisabled = true;
+        return;
+      }
+      if (!json || typeof json !== 'object') return;
+
+      if (json.timestamp) {
+        this.lastServerTimestamp = json.timestamp;
+      }
+
+      let hasChanged = false;
+      const keys = ['vb_properties', 'vb_areas', 'vb_cities', 'vb_settings', 'vb_enquiries', 'vb_visits', 'vb_refunds', 'vb_unlocks', 'vb_payments'];
+      keys.forEach((k) => {
+        if (json[k] !== undefined && (Array.isArray(json[k]) ? json[k].length > 0 : json[k])) {
+          const current = localStorage.getItem(k);
+          const incoming = JSON.stringify(json[k]);
+          if (current !== incoming) {
+            localStorage.setItem(k, incoming);
+            hasChanged = true;
+          }
+        }
+      });
+
+      if (hasChanged) {
+        this.notify();
+      }
+    } catch (_) {
+    } finally {
+      this.isSyncing = false;
+    }
+  }
+
+  async syncToServer(key, data) {
+    if (typeof window === 'undefined' || !window.fetch) return;
+    try {
+      const res = await fetch('/api/data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ [key]: data }),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json?.timestamp) {
+          this.lastServerTimestamp = json.timestamp;
+        }
+      }
+    } catch (_) {}
   }
 
   // Cryptographic Helper to verify administrative authorization
@@ -847,6 +953,7 @@ export class DataStore {
 
     localStorage.setItem('vb_cities', JSON.stringify(cities));
     this.notify();
+    this.syncToServer('vb_cities', cities);
     return updated;
   }
 
@@ -881,6 +988,7 @@ export class DataStore {
       return a;
     });
     localStorage.setItem('vb_areas', JSON.stringify(areas));
+    this.syncToServer('vb_areas', areas);
 
     // Reassign linked properties
     let properties = await this.getProperties();
@@ -894,10 +1002,12 @@ export class DataStore {
       return p;
     });
     localStorage.setItem('vb_properties', JSON.stringify(properties));
+    this.syncToServer('vb_properties', properties);
 
     localStorage.setItem('vb_cities', JSON.stringify(remainingCities));
     this.logAction(`Deleted city: ${cityToDelete.name} (reassigned to ${targetCity.name})`, 'Location', cityId);
     this.notify();
+    this.syncToServer('vb_cities', remainingCities);
     return true;
   }
 
@@ -932,6 +1042,43 @@ export class DataStore {
     }
 
     // Sort by display_order ascending, then name
+    return filtered.sort((a, b) => {
+      const orderA = a.display_order !== undefined ? a.display_order : 999;
+      const orderB = b.display_order !== undefined ? b.display_order : 999;
+      if (orderA !== orderB) return orderA - orderB;
+      return a.name.localeCompare(b.name);
+    });
+  }
+
+  getAreasSync({ cityId = null, includeInactive = false, search = '' } = {}) {
+    let areas = [];
+    try {
+      const stored = JSON.parse(localStorage.getItem('vb_areas') || '[]');
+      if (Array.isArray(stored) && stored.length > 0) {
+        areas = stored;
+      } else {
+        areas = INITIAL_AREAS;
+      }
+    } catch (_) {
+      areas = INITIAL_AREAS;
+    }
+
+    let filtered = areas;
+    if (cityId) {
+      filtered = filtered.filter(a => a.city_id === cityId);
+    }
+    if (!includeInactive) {
+      filtered = filtered.filter(a => a.active !== false);
+    }
+    if (search && search.trim()) {
+      const q = search.toLowerCase().trim();
+      filtered = filtered.filter(a => 
+        a.name.toLowerCase().includes(q) || 
+        (a.sub_areas && a.sub_areas.some(s => s.toLowerCase().includes(q))) ||
+        (a.description && a.description.toLowerCase().includes(q))
+      );
+    }
+
     return filtered.sort((a, b) => {
       const orderA = a.display_order !== undefined ? a.display_order : 999;
       const orderB = b.display_order !== undefined ? b.display_order : 999;
@@ -1010,6 +1157,7 @@ export class DataStore {
 
     localStorage.setItem('vb_areas', JSON.stringify(areas));
     this.notify();
+    this.syncToServer('vb_areas', areas);
     return updated;
   }
 
@@ -1038,6 +1186,7 @@ export class DataStore {
 
     if (reassignedCount > 0) {
       localStorage.setItem('vb_properties', JSON.stringify(properties));
+      this.syncToServer('vb_properties', properties);
       this.logAction(
         `Reassigned ${reassignedCount} properties from deleted area "${target.name}" to "${reassignAreaName || 'Nanded'}"`,
         'Property',
@@ -1049,6 +1198,7 @@ export class DataStore {
     localStorage.setItem('vb_areas', JSON.stringify(areas));
     this.logAction(`Deleted area: ${target.name}`, 'Location', id);
     this.notify();
+    this.syncToServer('vb_areas', areas);
   }
 
   async toggleAreaStatus(id) {
@@ -1121,6 +1271,26 @@ export class DataStore {
     return INITIAL_PROPERTIES;
   }
 
+  getPropertiesSync() {
+    try {
+      const stored = JSON.parse(localStorage.getItem('vb_properties') || '[]');
+      if (Array.isArray(stored) && stored.length > 0) {
+        const realUnlocks = this.getAllUnlocks();
+        const counts = {};
+        realUnlocks.forEach((u) => {
+          if (u && u.property_id) {
+            counts[u.property_id] = (counts[u.property_id] || 0) + 1;
+          }
+        });
+        return stored.map((p) => ({
+          ...p,
+          unlocks_count: counts[p.id] || 0,
+        }));
+      }
+    } catch (_) {}
+    return INITIAL_PROPERTIES;
+  }
+
   async getPropertyById(id) {
     if (!id) return null;
     const properties = await this.getProperties();
@@ -1157,6 +1327,7 @@ export class DataStore {
     }
     localStorage.setItem('vb_properties', JSON.stringify(properties));
     this.notify();
+    this.syncToServer('vb_properties', properties);
     return updated;
   }
 
@@ -1168,6 +1339,7 @@ export class DataStore {
     localStorage.setItem('vb_properties', JSON.stringify(properties));
     this.logAction(`Deleted property: ${target?.title || id}`, 'Property', id);
     this.notify();
+    this.syncToServer('vb_properties', properties);
   }
 
   async duplicateProperty(id) {
@@ -1886,6 +2058,7 @@ export class DataStore {
     localStorage.setItem('vb_settings', JSON.stringify(newSettings));
     this.logAction('Website content and payment fees updated', 'Settings', 'global');
     this.notify();
+    this.syncToServer('vb_settings', newSettings);
   }
 
   // --- AUDIT LOGS ---
@@ -1958,6 +2131,7 @@ export class DataStore {
       } catch (_) {}
     }
     this.notify();
+    this.syncToServer('vb_enquiries', enquiries);
     return newEnquiry;
   }
 
@@ -2028,6 +2202,7 @@ export class DataStore {
       this.logAction(`Enquiry #${enquiryId} status updated to ${newStatus}`, 'Enquiry', enquiryId);
     }
     this.notify();
+    this.syncToServer('vb_enquiries', enquiries);
     return targetEnquiry;
   }
 

@@ -19,8 +19,12 @@ import PropertyCard from '@/components/PropertyCard';
 
 export default function Buy() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [properties, setProperties] = useState([]);
-  const [areas, setAreas] = useState([]);
+  // Frame-1 instant data: initialize synchronously so properties render in 0ms
+  const [properties, setProperties] = useState(() => {
+    const all = dataStore.getPropertiesSync();
+    return (all || []).filter((p) => p.listing_type === 'buy');
+  });
+  const [areas, setAreas] = useState(() => dataStore.getAreasSync({ includeInactive: false }));
   const [areaFilter, setAreaFilter] = useState(() => searchParams.get('area') || 'All');
   const [bhkFilter, setBhkFilter] = useState('All');
   const [budgetTier, setBudgetTier] = useState('all'); // 'all', 'under50l', '50l-1cr', '1cr-2cr', 'above2cr'
@@ -43,7 +47,7 @@ export default function Buy() {
       setProperties(all.filter((p) => p.listing_type === 'buy'));
     }
     const loadedAreas = await dataStore.getAreas({ includeInactive: false });
-    setAreas(loadedAreas || []);
+    if (loadedAreas) setAreas(loadedAreas);
   };
 
   useEffect(() => {
@@ -488,26 +492,26 @@ export default function Buy() {
               </div>
             ) : (
               <>
-                {/* 1st Property: Row 1, Col 1 */}
+                {/* 1st Property: order-2 on mobile, order-1 on desktop */}
                 {filtered[0] && (
-                  <div className="order-1">
+                  <div className="order-2 lg:order-1">
                     <PropertyCard property={filtered[0]} />
                   </div>
                 )}
 
-                {/* 2nd Property: Row 1, Col 2 */}
+                {/* 2nd Property: order-3 on mobile, order-2 on desktop */}
                 {filtered[1] && (
-                  <div className="order-2">
+                  <div className="order-3 lg:order-2">
                     <PropertyCard property={filtered[1]} />
                   </div>
                 )}
               </>
             )}
 
-            {/* 3rd Slot: PORTRAIT FILTER CARD (Firmly locked at Row 1, Col 3 on desktop) */}
+            {/* PORTRAIT FILTER CARD: Top priority on mobile (order-1), locked at Row 1, Col 3 on desktop */}
             <div 
               ref={filterCardRef} 
-              className="w-full lg:col-start-3 lg:row-start-1 order-3 lg:order-none"
+              className="w-full order-1 lg:col-start-3 lg:row-start-1 lg:order-none"
             >
               {renderPortraitFilterCard()}
             </div>

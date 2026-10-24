@@ -16,14 +16,19 @@ import {
   Key,
   Check,
   RefreshCw,
-  Heart
+  Heart,
+  X,
+  KeyRound,
+  Sparkles,
+  ShieldAlert
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { checkUserExists } from '@/services/authSecurity';
 
 export default function Login({ initialRegister = false }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, resetPassword } = useAuth();
 
   const [isRegister, setIsRegister] = useState(() => initialRegister || location.pathname === '/register');
   const [name, setName] = useState('');
@@ -37,6 +42,18 @@ export default function Login({ initialRegister = false }) {
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
 
+  // Forgot Password Modal State
+  const [showForgotModal, setShowForgotModal] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotStep, setForgotStep] = useState(1); // 1: Email, 2: OTP & New Password, 3: Done
+  const [forgotOtp, setForgotOtp] = useState('');
+  const [generatedOtp, setGeneratedOtp] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotError, setForgotError] = useState('');
+
   const redirectPath = location.state?.from || '/';
 
   useEffect(() => {
@@ -48,6 +65,90 @@ export default function Login({ initialRegister = false }) {
     setErrorMsg('');
     setSuccessMsg('');
   }, [location.pathname]);
+
+  const handleOpenForgotModal = () => {
+    setForgotEmail(email.trim());
+    setForgotStep(1);
+    setForgotOtp('');
+    setGeneratedOtp('');
+    setNewPassword('');
+    setConfirmNewPassword('');
+    setShowNewPassword(false);
+    setForgotError('');
+    setShowForgotModal(true);
+  };
+
+  const handleRequestOtp = async (e) => {
+    e?.preventDefault();
+    setForgotError('');
+    const cleanEmail = (forgotEmail || '').trim().toLowerCase();
+
+    if (!cleanEmail || !cleanEmail.includes('@') || !cleanEmail.includes('.')) {
+      setForgotError('Please enter a valid email address.');
+      return;
+    }
+
+    setForgotLoading(true);
+    try {
+      const userCheck = await checkUserExists(cleanEmail);
+      if (!userCheck.exists) {
+        setForgotError('No account found with this email. Please check your spelling or register a new account.');
+        setForgotLoading(false);
+        return;
+      }
+
+      // Generate 6-digit OTP code
+      const code = Math.floor(100000 + Math.random() * 900000).toString();
+      setGeneratedOtp(code);
+      setForgotStep(2);
+    } catch (err) {
+      setForgotError(err.message || 'Unable to process reset request. Please try again.');
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
+  const handleResetPasswordSubmit = async (e) => {
+    e?.preventDefault();
+    setForgotError('');
+
+    if (!forgotOtp.trim()) {
+      setForgotError('Please enter the 6-digit verification code.');
+      return;
+    }
+
+    if (forgotOtp.trim() !== generatedOtp.trim()) {
+      setForgotError('Invalid verification code. Please check the code or request a new one.');
+      return;
+    }
+
+    if (!newPassword || newPassword.length < 6) {
+      setForgotError('New password must be at least 6 characters long.');
+      return;
+    }
+
+    if (newPassword !== confirmNewPassword) {
+      setForgotError('New passwords do not match. Please re-enter.');
+      return;
+    }
+
+    setForgotLoading(true);
+    try {
+      await resetPassword(forgotEmail.trim().toLowerCase(), newPassword);
+      setForgotStep(3);
+    } catch (err) {
+      setForgotError(err.message || 'Failed to update password. Please try again.');
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
+  const handleCompleteReset = () => {
+    setEmail(forgotEmail);
+    setPassword(newPassword);
+    setShowForgotModal(false);
+    setSuccessMsg('Password reset successfully! You can now sign in with your new password.');
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -105,7 +206,7 @@ export default function Login({ initialRegister = false }) {
           <img
             src={getAssetUrl('/logo.png')}
             alt="Vedika Brokers"
-            className="h-10 w-auto object-contain mx-auto"
+            className="h-12 sm:h-14 w-auto object-contain mx-auto"
           />
         </Link>
         <div className="inline-flex items-center gap-1.5 bg-blue-900/10 text-blue-950 px-3 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider">
@@ -133,7 +234,7 @@ export default function Login({ initialRegister = false }) {
               <img
                 src={getAssetUrl('/logo-white.png')}
                 alt="Vedika Brokers"
-                className="h-14 w-auto object-contain transition-transform group-hover:scale-105"
+                className="h-16 sm:h-20 w-auto object-contain transition-transform group-hover:scale-105"
               />
             </Link>
 

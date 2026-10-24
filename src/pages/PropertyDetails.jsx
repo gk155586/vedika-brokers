@@ -212,7 +212,7 @@ export default function PropertyDetails() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
       {/* Back button & Breadcrumbs */}
-      <div className="flex justify-between items-center text-xs text-slate-500">
+      <div className="flex flex-wrap justify-between items-center gap-2 text-xs text-slate-500">
         <button
           onClick={() => navigate(-1)}
           className="flex items-center gap-1.5 font-semibold text-slate-700 hover:text-blue-900 transition"
@@ -386,14 +386,51 @@ export default function PropertyDetails() {
 
           {/* Title, Locality, and Specs */}
           <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
-            <div>
-              <div className="flex items-center gap-2 text-xs font-semibold text-blue-900 mb-1">
-                <MapPin className="w-4 h-4 text-amber-600 shrink-0" />
-                <span>{property.locality || property.area}, {property.area}, {property.city || 'Nanded'}</span>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <div className="flex items-center gap-2 text-xs font-semibold text-blue-900 mb-1">
+                  <MapPin className="w-4 h-4 text-amber-600 shrink-0" />
+                  <span>{property.locality || property.area}, {property.area}, {property.city || 'Nanded'}</span>
+                </div>
+                <h1 className="text-xl sm:text-3xl font-extrabold text-slate-900 font-serif leading-tight">
+                  {property.title}
+                </h1>
               </div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 font-serif">
-                {property.title}
-              </h1>
+
+              {/* Mobile/Tablet Highlighted Price Badge right at the top */}
+              <div className="lg:hidden bg-blue-50/80 border border-blue-200/90 rounded-2xl p-3 flex items-center justify-between shrink-0">
+                <div>
+                  <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Price</span>
+                  <span className="text-xl font-black text-blue-950 font-serif">
+                    {formatPrice(property.price, property.listing_type)}
+                  </span>
+                </div>
+                {isUnlocked ? (
+                  <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-800 bg-emerald-100 px-3 py-1.5 rounded-xl border border-emerald-200">
+                    <Unlock className="w-3.5 h-3.5 text-emerald-700" /> Address Unlocked
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!user || !user.id || user.id === 'guest') {
+                        navigate('/login', {
+                          state: {
+                            from: window.location.pathname + window.location.search,
+                            message: 'Please sign in or create an account to unlock property coordinates.'
+                          }
+                        });
+                        return;
+                      }
+                      setUnlockModalOpen(true);
+                    }}
+                    className="inline-flex items-center gap-1.5 text-xs font-black text-slate-950 bg-amber-400 hover:bg-amber-300 px-3.5 py-2 rounded-xl shadow cursor-pointer active:scale-95"
+                  >
+                    <Lock className="w-3.5 h-3.5 text-slate-950" />
+                    <span>Unlock Address</span>
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Quick Specs Grid */}

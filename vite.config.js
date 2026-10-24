@@ -119,9 +119,74 @@ function mediaUploaderPlugin() {
   };
 }
 
+let lastDataTimestamp = Date.now();
+const dataDir = path.resolve(__dirname, 'data');
+const storeFilePath = path.join(dataDir, 'store.json');
+
+function ensureDataStore() {
+  if (!fs.existsSync(dataDir)) {
+    fs.mkdirSync(dataDir, { recursive: true });
+  }
+}
+
+function dataStoreServerPlugin() {
+  return {
+    name: 'data-store-server-plugin',
+    configureServer(server) {
+      server.middlewares.use('/api/data/timestamp', (req, res) => {
+        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+        res.end(JSON.stringify({ timestamp: lastDataTimestamp }));
+      });
+
+      server.middlewares.use('/api/data', (req, res, next) => {
+        ensureDataStore();
+        if (req.method === 'GET') {
+          res.setHeader('Content-Type', 'application/json');
+          res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+          if (fs.existsSync(storeFilePath)) {
+            try {
+              const content = fs.readFileSync(storeFilePath, 'utf8');
+              res.end(content);
+              return;
+            } catch (_) {}
+          }
+          res.end(JSON.stringify({ success: true, timestamp: lastDataTimestamp, data: {} }));
+        } else if (req.method === 'POST') {
+          const chunks = [];
+          req.on('data', (chunk) => chunks.push(chunk));
+          req.on('end', () => {
+            try {
+              const body = Buffer.concat(chunks).toString('utf8');
+              const parsed = JSON.parse(body);
+              let existing = {};
+              if (fs.existsSync(storeFilePath)) {
+                try {
+                  existing = JSON.parse(fs.readFileSync(storeFilePath, 'utf8'));
+                } catch (_) {}
+              }
+              const merged = { ...existing, ...parsed, updatedAt: new Date().toISOString() };
+              fs.writeFileSync(storeFilePath, JSON.stringify(merged, null, 2), 'utf8');
+              lastDataTimestamp = Date.now();
+              res.setHeader('Content-Type', 'application/json');
+              res.end(JSON.stringify({ success: true, timestamp: lastDataTimestamp }));
+            } catch (err) {
+              res.statusCode = 400;
+              res.setHeader('Content-Type', 'application/json');
+              res.end(JSON.stringify({ error: err.message }));
+            }
+          });
+        } else {
+          next();
+        }
+      });
+    },
+  };
+}
+
 export default defineConfig({
   base: process.env.VITE_BASE_PATH || (process.env.GITHUB_ACTIONS ? '/vedika-brokers/' : '/'),
-  plugins: [react(), mediaUploaderPlugin()],
+  plugins: [react(), mediaUploaderPlugin(), dataStoreServerPlugin()],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

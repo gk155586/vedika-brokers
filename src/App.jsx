@@ -5,22 +5,24 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import QRWelcomeBanner from '@/components/QRWelcomeBanner';
 import Home from '@/pages/Home';
-import Rent from '@/pages/Rent';
-import Buy from '@/pages/Buy';
-import PropertyDetails from '@/pages/PropertyDetails';
-import Compare from '@/pages/Compare';
-import Login from '@/pages/Auth/Login';
-import Profile from '@/pages/Account/Profile';
-import AdminLogin from '@/pages/Dashboard/AdminLogin';
-import AdminDashboard from '@/pages/Dashboard/AdminDashboard';
-import HowItWorks from '@/pages/Static/HowItWorks';
-import Contact from '@/pages/Static/Contact';
-import RefundPolicy from '@/pages/Static/RefundPolicy';
-import Terms from '@/pages/Static/Terms';
-import Privacy from '@/pages/Static/Privacy';
 import MobileBottomNav from '@/components/MobileBottomNav';
 import { AuthProvider, useAuth } from '@/hooks/useAuth';
 import dataStore from '@/services/dataStore';
+
+// Code-splitting via React.lazy for lightning-fast initial page load
+const Rent = React.lazy(() => import('@/pages/Rent'));
+const Buy = React.lazy(() => import('@/pages/Buy'));
+const PropertyDetails = React.lazy(() => import('@/pages/PropertyDetails'));
+const Compare = React.lazy(() => import('@/pages/Compare'));
+const Login = React.lazy(() => import('@/pages/Auth/Login'));
+const Profile = React.lazy(() => import('@/pages/Account/Profile'));
+const AdminLogin = React.lazy(() => import('@/pages/Dashboard/AdminLogin'));
+const AdminDashboard = React.lazy(() => import('@/pages/Dashboard/AdminDashboard'));
+const HowItWorks = React.lazy(() => import('@/pages/Static/HowItWorks'));
+const Contact = React.lazy(() => import('@/pages/Static/Contact'));
+const RefundPolicy = React.lazy(() => import('@/pages/Static/RefundPolicy'));
+const Terms = React.lazy(() => import('@/pages/Static/Terms'));
+const Privacy = React.lazy(() => import('@/pages/Static/Privacy'));
 
 function ScrollToTop() {
   const { pathname, search, hash } = useLocation();
@@ -166,76 +168,85 @@ export default function App() {
         <Router basename={import.meta.env.BASE_URL}>
           <ScrollToTop />
           <LayoutWrapper>
-          <Routes>
-            {/* Public routes */}
-            <Route path="/" element={<Home />} />
-            <Route path="/rent" element={<Rent />} />
-            <Route path="/buy" element={<Buy />} />
-            <Route path="/property/:id" element={<PropertyDetails />} />
-            <Route path="/compare" element={<Compare />} />
-            <Route path="/how-it-works" element={<HowItWorks />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/refund-policy" element={<RefundPolicy />} />
-            <Route path="/terms" element={<Terms />} />
-            <Route path="/privacy" element={<Privacy />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Login initialRegister={true} />} />
-
-            {/* User Account & Favorites */}
-            <Route
-              path="/account"
-              element={
-                <RequireAuth>
-                  <Profile />
-                </RequireAuth>
-              }
-            />
-            <Route
-              path="/favorites"
-              element={
-                <RequireAuth>
-                  <Profile />
-                </RequireAuth>
-              }
-            />
-
-            {/* Completely Isolated Admin routes */}
-            <Route path="/admin/login" element={<AdminLogin />} />
-            <Route
-              path="/admin"
-              element={
-                <RequireAdmin>
-                  <AdminDashboard />
-                </RequireAdmin>
-              }
-            />
-            <Route
-              path="/admin/*"
-              element={
-                <RequireAdmin>
-                  <AdminDashboard />
-                </RequireAdmin>
-              }
-            />
-
-            {/* 404 Fallback */}
-            <Route
-              path="*"
-              element={
-                <div className="max-w-md mx-auto p-12 text-center space-y-4">
-                  <h1 className="text-4xl font-extrabold text-blue-950">404</h1>
-                  <p className="text-sm text-slate-600">The requested property or page could not be found.</p>
-                  <a
-                    href="/"
-                    className="inline-block bg-blue-900 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow"
-                  >
-                    Return to Home
-                  </a>
+            <React.Suspense
+              fallback={
+                <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-3">
+                  <div className="w-8 h-8 border-3 border-amber-400 border-t-blue-900 rounded-full animate-spin" />
+                  <span className="text-xs font-bold text-slate-500 tracking-wide">Loading Vedika Brokers...</span>
                 </div>
               }
-            />
-          </Routes>
-        </LayoutWrapper>
+            >
+              <Routes>
+                {/* Public routes */}
+                <Route path="/" element={<Home />} />
+                <Route path="/rent" element={<Rent />} />
+                <Route path="/buy" element={<Buy />} />
+                <Route path="/property/:id" element={<PropertyDetails />} />
+                <Route path="/compare" element={<Compare />} />
+                <Route path="/how-it-works" element={<HowItWorks />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/refund-policy" element={<RefundPolicy />} />
+                <Route path="/terms" element={<Terms />} />
+                <Route path="/privacy" element={<Privacy />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Login initialRegister={true} />} />
+
+                {/* User Account & Favorites */}
+                <Route
+                  path="/account"
+                  element={
+                    <RequireAuth>
+                      <Profile />
+                    </RequireAuth>
+                  }
+                />
+                <Route
+                  path="/favorites"
+                  element={
+                    <RequireAuth>
+                      <Profile />
+                    </RequireAuth>
+                  }
+                />
+
+                {/* Completely Isolated Admin routes */}
+                <Route path="/admin/login" element={<AdminLogin />} />
+                <Route
+                  path="/admin"
+                  element={
+                    <RequireAdmin>
+                      <AdminDashboard />
+                    </RequireAdmin>
+                  }
+                />
+                <Route
+                  path="/admin/*"
+                  element={
+                    <RequireAdmin>
+                      <AdminDashboard />
+                    </RequireAdmin>
+                  }
+                />
+
+                {/* 404 Fallback */}
+                <Route
+                  path="*"
+                  element={
+                    <div className="max-w-md mx-auto p-12 text-center space-y-4">
+                      <h1 className="text-4xl font-extrabold text-blue-950">404</h1>
+                      <p className="text-sm text-slate-600">The requested property or page could not be found.</p>
+                      <a
+                        href="/"
+                        className="inline-block bg-blue-900 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow"
+                      >
+                        Return to Home
+                      </a>
+                    </div>
+                  }
+                />
+              </Routes>
+            </React.Suspense>
+          </LayoutWrapper>
       </Router>
     </AuthProvider>
     </ErrorBoundary>

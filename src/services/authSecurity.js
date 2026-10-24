@@ -504,3 +504,121 @@ export async function authenticateLocalUser(email, password) {
     status: user.status || 'active',
   };
 }
+
+/**
+ * Checks if a user email exists (local users or admin accounts).
+ */
+export async function checkUserExists(email) {
+  const normalizedEmail = (email || '').trim().toLowerCase();
+  if (!normalizedEmail) return { exists: false, user: null };
+
+  // 1. Check local registered users
+  try {
+    const raw = localStorage.getItem('vb_registered_users') || localStorage.getItem('vb_registered_users_backup');
+    if (raw) {
+      const users = JSON.parse(raw);
+      if (Array.isArray(users)) {
+        const found = users.find((u) => u.email && u.email.toLowerCase() === normalizedEmail);
+        if (found) return { exists: true, user: found };
+      }
+    }
+  } catch (_) {}
+
+  // 2. Check admin accounts
+  if (isAuthorizedAdminEmail(normalizedEmail)) {
+    return { exists: true, user: { email: normalizedEmail, role: 'admin' } };
+  }
+
+  return { exists: false, user: null };
+}
+
+/**
+ * Resets user password securely by computing a new cryptographic salt and hash.
+ */
+export async function resetUserPassword(email, newPassword) {
+  const normalizedEmail = (email || '').trim().toLowerCase();
+  const normalizedPassword = (newPassword || '').trim();
+
+  if (!normalizedEmail) {
+    throw new Error('Please enter a valid email address.');
+  }
+
+  if (!normalizedPassword || normalizedPassword.length < 6) {
+    throw new Error('New password must be at least 6 characters long.');
+  }
+
+  let updated = false;
+
+  // 1. Update in local registered users
+  try {
+    const raw = localStorage.getItem('vb_registered_users') || localStorage.getItem('vb_registered_users_backup');
+    let users = raw ? JSON.parse(raw) : [];
+    if (!Array.isArray(users)) users = [];
+
+    const userIndex = users.findIndex((u) => u.email && u.email.toLowerCase() === normalizedEmail);
+    if (userIndex !== -1) {
+      const salt = `salt_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
+      const passwordHash = await hashPassword(normalizedPassword, salt);
+      users[userIndex].salt = salt;
+      users[userIndex].passwordHash = passwordHash;
+      users[userIndex].updatedAt = new Date().toISOString();
+
+      localStorage.setItem('vb_registered_users', JSON.stringify(users));
+      localStorage.setItem('vb_registered_users_backup', JSON.stringify(users));
+      updated = true;
+    }
+  } catch (err) {
+    console.error('Error updating registered user password:', err);
+  }
+
+  // 2. Update in admin accounts if authorized admin
+  if (isAuthorizedAdminEmail(normalizedEmail)) {
+    try {
+      const accounts = await getAdminAccounts();
+      const salt = `salt_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
+      const passwordHash = await hashPassword(normalizedPassword, salt);
+      const creds = {
+        email: normalizedEmail,
+        passwordHash,
+        salt,
+        isConfigured: true,
+        updatedAt: new Date().toISOString(),
+      };
+      accounts[normalizedEmail] = creds;
+      localStorage.setItem('vb_admin_accounts', JSON.stringify(accounts));
+      localStorage.setItem('vb_admin_creds', JSON.stringify(creds));
+      updated = true;
+    } catch (err) {
+      console.error('Error updating admin account password:', err);
+    }
+  }
+
+  // 3. Reset rate limit for this email
+  resetRateLimit(`login_${normalizedEmail}`);
+
+  if (!updated) {
+    // If not found in local storage, register fresh user account with this password
+    const salt = `salt_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
+    const passwordHash = await hashPassword(normalizedPassword, salt);
+    const newUser = {
+      id: `user-${Date.now()}`,
+      name: normalizedEmail.split('@')[0],
+      email: normalizedEmail,
+      phone: '',
+      role: 'user',
+      salt,
+      passwordHash,
+      createdAt: new Date().toISOString(),
+    };
+    try {
+      const raw = localStorage.getItem('vb_registered_users') || '[]';
+      const users = JSON.parse(raw);
+      users.push(newUser);
+      localStorage.setItem('vb_registered_users', JSON.stringify(users));
+      localStorage.setItem('vb_registered_users_backup', JSON.stringify(users));
+      updated = true;
+    } catch (_) {}
+  }
+
+  return { success: true, message: 'Password has been updated successfully.' };
+}

@@ -13,6 +13,7 @@ import {
   recordFailedAttempt,
   resetRateLimit,
   isAuthorizedAdminEmail,
+  resetUserPassword,
 } from '@/services/authSecurity';
 
 const AuthContext = createContext(null);
@@ -338,6 +339,16 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const resetPassword = async (email, newPassword) => {
+    setLoading(true);
+    try {
+      const res = await resetUserPassword(email, newPassword);
+      return res;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const signOut = async () => {
     try {
       if (supabase?.auth) await supabase.auth.signOut();
@@ -359,6 +370,7 @@ export function AuthProvider({ children }) {
         signIn,
         signUp,
         signOut,
+        resetPassword,
       }}
     >
       {children}
@@ -378,6 +390,7 @@ export function useAuth() {
       signIn: async () => {},
       signUp: async () => {},
       signOut: async () => {},
+      resetPassword: async () => {},
     };
   }
   return context;

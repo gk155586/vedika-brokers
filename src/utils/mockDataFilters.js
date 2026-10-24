@@ -146,8 +146,10 @@ export function purgeAllMockData() {
     const cleanUsers = registered.filter((u) => !isMockUser(u));
     purgedUsersCount = initialUsersLen - cleanUsers.length;
 
-    localStorage.setItem('vb_registered_users', JSON.stringify(cleanUsers));
-    localStorage.setItem('vb_registered_users_backup', JSON.stringify(cleanUsers));
+    if (purgedUsersCount > 0) {
+      localStorage.setItem('vb_registered_users', JSON.stringify(cleanUsers));
+      localStorage.setItem('vb_registered_users_backup', JSON.stringify(cleanUsers));
+    }
 
     // 3. Purge mock enquiries
     let enquiries = [];
@@ -163,7 +165,9 @@ export function purgeAllMockData() {
     const cleanEnquiries = enquiries.filter((e) => !isMockEnquiry(e));
     purgedEnquiriesCount = initialEnqLen - cleanEnquiries.length;
 
-    localStorage.setItem('vb_enquiries', JSON.stringify(cleanEnquiries));
+    if (purgedEnquiriesCount > 0) {
+      localStorage.setItem('vb_enquiries', JSON.stringify(cleanEnquiries));
+    }
 
     // 4. Purge mock user favorites
     try {
@@ -174,7 +178,9 @@ export function purgeAllMockData() {
           const cleanFavs = favs.filter(
             (f) => !f || (!/^user-10[1-9]$/i.test(String(f.user_id || '')) && !/^mock-/i.test(String(f.user_id || '')))
           );
-          localStorage.setItem('vb_favorites', JSON.stringify(cleanFavs));
+          if (cleanFavs.length !== favs.length) {
+            localStorage.setItem('vb_favorites', JSON.stringify(cleanFavs));
+          }
         }
       }
     } catch (_) {}
@@ -188,7 +194,9 @@ export function purgeAllMockData() {
           const cleanUnlocks = unlocks.filter(
             (u) => !u || (!/^user-10[1-9]$/i.test(String(u.user_id || '')) && !/^mock-/i.test(String(u.user_id || '')))
           );
-          localStorage.setItem('vb_unlocks', JSON.stringify(cleanUnlocks));
+          if (cleanUnlocks.length !== unlocks.length) {
+            localStorage.setItem('vb_unlocks', JSON.stringify(cleanUnlocks));
+          }
         }
       }
     } catch (_) {}
@@ -202,7 +210,9 @@ export function purgeAllMockData() {
           const cleanVisits = visits.filter(
             (v) => !v || (!/^user-10[1-9]$/i.test(String(v.user_id || '')) && !/^mock-/i.test(String(v.user_id || '')))
           );
-          localStorage.setItem('vb_visits', JSON.stringify(cleanVisits));
+          if (cleanVisits.length !== visits.length) {
+            localStorage.setItem('vb_visits', JSON.stringify(cleanVisits));
+          }
         }
       }
     } catch (_) {}
@@ -216,7 +226,9 @@ export function purgeAllMockData() {
           const cleanSessions = sessions.filter(
             (s) => !isMockUser({ id: s.userId, email: s.userEmail, name: s.userName, phone: s.phone })
           );
-          localStorage.setItem('vb_active_sessions', JSON.stringify(cleanSessions));
+          if (cleanSessions.length !== sessions.length) {
+            localStorage.setItem('vb_active_sessions', JSON.stringify(cleanSessions));
+          }
         }
       }
     } catch (_) {}
@@ -243,11 +255,19 @@ export function purgeAllMockData() {
             }
           });
 
-          const sanitizedProps = props.map((p) => ({
-            ...p,
-            unlocks_count: realCounts[p.id] || 0,
-          }));
-          localStorage.setItem('vb_properties', JSON.stringify(sanitizedProps));
+          let propsChanged = false;
+          const sanitizedProps = props.map((p) => {
+            const expectedCount = realCounts[p.id] || 0;
+            if (Number(p.unlocks_count || 0) !== expectedCount) {
+              propsChanged = true;
+              return { ...p, unlocks_count: expectedCount };
+            }
+            return p;
+          });
+
+          if (propsChanged) {
+            localStorage.setItem('vb_properties', JSON.stringify(sanitizedProps));
+          }
         }
       }
     } catch (_) {}

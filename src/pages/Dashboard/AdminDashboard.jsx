@@ -162,6 +162,8 @@ export default function AdminDashboard() {
 
   // Initial load & real-time sync
   useEffect(() => {
+    // Purge mock data once safely on mount
+    try { purgeAllMockData(); } catch (_) {}
     refreshData();
     const unsub = dataStore.subscribe(refreshData);
 
@@ -173,10 +175,10 @@ export default function AdminDashboard() {
     window.addEventListener('vb-users-updated', handleRealtimeSync);
     window.addEventListener('vb-unlocks-updated', handleRealtimeSync);
 
-    // Fast background sync every 3.5s for multi-tab real-time updates
+    // Smooth background sync every 5s for multi-tab real-time updates
     const liveInterval = setInterval(() => {
       refreshData();
-    }, 3500);
+    }, 5000);
 
     return () => {
       unsub();
@@ -188,9 +190,6 @@ export default function AdminDashboard() {
   }, []);
 
   const refreshData = async () => {
-    // Strictly zero mock / dummy data policy: Purge test seeds and legacy keys
-    try { purgeAllMockData(); } catch (_) {}
-
     try {
       const props = await dataStore.getProperties();
       setProperties(props || []);
